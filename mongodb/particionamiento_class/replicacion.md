@@ -141,9 +141,3 @@ db.getCollection('prueba').find({})
 * https://www.youtube.com/watch?v=qYzYp1bPCPg
 * https://docs.mongodb.com/manual/tutorial/deploy-sharded-cluster-hashed-sharding/#deploy-hashed-sharded-cluster-shard-collection
 
-### Otras opciones:
-
-* [How to generate random test data](https://farenda.com/mongodb/how-to-generate-random-test-data-in-mongodb/)
-* https://github.com/feliixx/mgodatagen (Go)
-* https://www.mockaroo.com/
-* https://github.com/mongodb-labs/ipsum (Python)
