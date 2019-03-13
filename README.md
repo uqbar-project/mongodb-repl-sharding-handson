@@ -5,4 +5,4 @@ Bienvenido al material extra de la materia Programación con Herramientas Modern
 
 * MongoDB
   * [Cómo generar datos random](./mongodb/generarDatosRandom.md)
-  * [Particionamiento](./mondodb/particionamiento.md)
+  * [Particionamiento](./mongodb/particionamiento.md)
