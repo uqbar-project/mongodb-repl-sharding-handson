@@ -40,13 +40,13 @@ db.getCollection('students').find({name: 'Norman Robinson'})
 
 Que tarda en mi máquina 0.266 segundos (nada mal para 1.000.000 de elementos).
 
-## Links
-
-* [Volver a Particionamiento en MongoDB](../particionamiento.md)
-
 ## Alternativas en otras tecnologías
 
 * [How to generate random test data](https://farenda.com/mongodb/how-to-generate-random-test-data-in-mongodb/)
 * https://github.com/feliixx/mgodatagen (Go)
 * https://www.mockaroo.com/
 * https://github.com/mongodb-labs/ipsum (Python)
+
+## Links
+
+* [Volver al menú principal](../README.md)

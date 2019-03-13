@@ -1,5 +1,5 @@
 
-# Replicas
+# Replicación
 
 ## Taller para generar réplicas en MongoDB
 
@@ -128,16 +128,16 @@ Abrimos una sesión en Robo3T, accediendo a localhost:27059 (la réplica):
 db.getCollection('prueba').find({})
 ```
 
-### Material
+## Demo
+
+![image](../../images/replicacionMongo.gif)
+
+## Material
 
 * [Conceptos de replicación](https://docs.mongodb.com/manual/replication/)
 * [Deploy](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
 
+## Links
 
-## Sharding
-
-* https://docs.mongodb.com/manual/sharding/
-* https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
-* https://www.youtube.com/watch?v=qYzYp1bPCPg
-* https://docs.mongodb.com/manual/tutorial/deploy-sharded-cluster-hashed-sharding/#deploy-hashed-sharded-cluster-shard-collection
-
+* [Volver al menú principal](../../README.md)
+* [Volver a particionamiento](../particionamiento.md)
