@@ -1,4 +1,4 @@
 # Clase de particionamiento
 
-* [Replicación](particionamiento/replicacion.md)
-* [Sharding](particionamiento/sharding.md)
+* [Replicación](./particionamiento_class/replicacion.md)
+* [Sharding](./particionamiento_class/sharding.md)
