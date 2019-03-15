@@ -132,6 +132,29 @@ db.getCollection('prueba').find({})
 
 ![image](../../images/replicacionMongo.gif)
 
+## Las réplicas son de solo lectura
+
+Exactamente, si nos conectamos a alguna de las réplicas
+
+```bash
+mongo --port 27059
+...
+rs_cluster1:SECONDARY> 
+```
+
+E intentamos agregar un elemento a la colección `prueba`, obtendremos un mensaje de error:
+
+```js
+db.prueba.insert({x: 50, y: 20, z: 10})
+WriteResult({ "writeError" : { "code" : 10107, "errmsg" : "not master" } })
+```
+
+Efectivamente, nos dice que no estamos en master.
+
+## Resumen de la arquitectura
+
+TODO
+
 ## Material
 
 * [Conceptos de replicación](https://docs.mongodb.com/manual/replication/)
