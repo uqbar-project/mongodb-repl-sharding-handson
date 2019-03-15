@@ -1,6 +1,6 @@
 # Replicación
 
-![image](../images/replicacionBase.svg)
+![image](../../images/replicacionBase.svg)
 
 La replicación consiste en tener copias o _réplicas_ de una base de datos original. En la base de datos MongoDB esto se implementa con varios procesos:
 
