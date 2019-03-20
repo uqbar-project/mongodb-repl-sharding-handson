@@ -28,5 +28,5 @@ A partir de este momento, el nuevo nodo primario puede comenzar a recibir pedido
 ## Links útiles
 
 * [Replicación - Manuales de MongoDB](https://docs.mongodb.com/manual/replication/)
-* [Taller de Replicación](./particionamiento_class/replicacionTaller.md)
-* [Replicación con una app en vivo](./particionamiento_class/replicacionApp.md)
+* [Taller de Replicación](./replicacionTaller.md)
+* [Replicación con una app en vivo](./replicacionApp.md)
