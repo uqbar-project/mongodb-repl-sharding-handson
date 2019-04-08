@@ -25,6 +25,15 @@ Cuando el nodo primario sufre una falla, deja de enviar su _heartbeat_. El árbi
 
 A partir de este momento, el nuevo nodo primario puede comenzar a recibir pedidos de los clientes. En promedio la documentación de MongoDB calcula que el proceso de detección de caída del nodo primario y la elección de un nuevo nodo puede llevar aproximadamente 12 segundos, dependiendo de la configuración y del tiempo de latencia de la red.
 
+## Consistencia eventual
+
+La replicación tiene **consistencia eventual**, lo que trae como consecuencia
+
+* el nodo primario actualiza la información
+* si hacemos la consulta a un nodo secundario, hay un momento en el que la información estará desactualizada, hasta que corra el proceso que regenere los datos
+
+![](../../images/consistenciaEventual.jpg)
+
 ## Links útiles
 
 * [Replicación - Manuales de MongoDB](https://docs.mongodb.com/manual/replication/)
