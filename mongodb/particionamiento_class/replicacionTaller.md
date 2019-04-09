@@ -35,7 +35,7 @@ Definimos la variable de configuración apuntando al cluster 1, e iniciamos la r
 	]
 }
 
-> rs.initiate (cfg)
+> rs.initiate(cfg)
 { "ok" : 1 }
 ```
 
@@ -57,7 +57,7 @@ Y en la sesión de mongo apuntando al puerto 27058 hacemos:
 
 ```js
 // mongo --port 27058
-cfg={_id:"rs_cluster1",members:[{_id:0, host:"localhost:27058"},{_id:1,host:"localhost:27059"}]}
+cfg= {_id:"rs_cluster1",members:[{_id:0, host: "localhost:27058"},{_id:1,host: "localhost:27059"}, { _id:2, host: "localhost:27060" }]}
 rs.reconfig(cfg)
 ```
 
@@ -67,7 +67,7 @@ Vemos ahora la configuración de las réplicas:
 rs_cluster1:PRIMARY> rs.conf()
 {
 	"_id" : "rs_cluster1",
-	"version" : 2,
+	"version" : 78634,
 	"protocolVersion" : NumberLong(1),
 	"members" : [
 		{
@@ -95,6 +95,19 @@ rs_cluster1:PRIMARY> rs.conf()
 			},
 			"slaveDelay" : NumberLong(0),
 			"votes" : 1
+		},
+		{
+			"_id" : 2,
+			"host" : "localhost:27060",
+			"arbiterOnly" : false,
+			"buildIndexes" : true,
+			"hidden" : false,
+			"priority" : 1,
+			"tags" : {
+				
+			},
+			"slaveDelay" : NumberLong(0),
+			"votes" : 1
 		}
 	],
 	"settings" : {
@@ -110,7 +123,7 @@ rs_cluster1:PRIMARY> rs.conf()
 			"w" : 1,
 			"wtimeout" : 0
 		},
-		"replicaSetId" : ObjectId("5c8860523ca7b039558efdf0")
+		"replicaSetId" : ObjectId("5c88dbd531e2e061dcaa2d8b")
 	}
 }
 ```
