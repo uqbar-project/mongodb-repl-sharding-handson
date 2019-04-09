@@ -168,7 +168,7 @@ Efectivamente, nos dice que no estamos en master.
 
 ## Resumen de la arquitectura
 
-TODO
+![](../../images/arquitecturaReplicaSetMongoDB.png)
 
 ## Material
 
