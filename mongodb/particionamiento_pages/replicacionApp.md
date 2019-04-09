@@ -125,3 +125,7 @@ abr 09, 2019 8:09:35 PM com.mongodb.diagnostics.logging.JULLogger log
 INFORMACIÓN: Setting max election id to 7fffffff0000000000000006 from replica set primary localhost:27059
 abr 09, 2019 8:09:35 PM com.mongodb.diagnostics.logging.JULLogger log
 ```
+
+## Resumen arquitectura
+
+![](../../images/replicaSetMongoDBApp.png)
