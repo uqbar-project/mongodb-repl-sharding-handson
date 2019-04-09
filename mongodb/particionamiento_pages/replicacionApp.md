@@ -69,7 +69,7 @@ Cambiaremos ahora en la clase `AbstractRepository<T>` del mismo ejemplo de libro
 ```xtend
     val mongo = new MongoClient(#[new ServerAddress("localhost", 27058),
             new ServerAddress("localhost", 27059),
-            new ServerAddress("localhost", 27060)]);
+            new ServerAddress("localhost", 27060)])
 ```
 
 ## Cambiando el nodo primario
