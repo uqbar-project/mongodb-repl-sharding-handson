@@ -60,7 +60,7 @@ abstract class AbstractRepository<T> {
 
 Podemos a su vez abrir una sesión de Robo3T y ver cómo los cambios impactan directamente en el nodo réplica:
 
-![](../../images/replicacionMongo.gif)
+![](../../images/replicacionMongoApp.gif)
 
 ## Conectándonos a un Replicaset
 

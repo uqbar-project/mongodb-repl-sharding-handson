@@ -1,7 +1,8 @@
 # Clase de particionamiento
 
 * **Replicación**
-  * [Conceptos](./particionamiento_class/replicacionConceptos.md)
-  * [Taller de Replicación](./particionamiento_class/replicacionTaller.md)
-  * [Replicación con una app en vivo](./particionamiento_class/replicacionApp.md) (TODO)
-* [Sharding](./particionamiento_class/sharding.md)
+  * [Conceptos](./particionamiento_pages/replicacionConceptos.md)
+  * [Taller de Replicación](./particionamiento_pages/replicacionTaller.md)
+  * [Replicación con una app en vivo](./particionamiento_pages/replicacionApp.md)
+* **Sharding**
+  * [Conceptos](./particionamiento_pages/shardingConceptos.md)
