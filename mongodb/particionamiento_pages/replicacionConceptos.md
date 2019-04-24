@@ -7,7 +7,7 @@ La replicación consiste en tener copias o _réplicas_ de una base de datos orig
 
 Nosotros podemos conectarnos con un cliente (proceso **mongo**) a cualquiera de los nodos, pero **solo podremos insertar, actualizar o eliminar documentos en el nodo primario**.
 
-![](../../images/replication/01-replication-base.png)
+![](../../images/replication/replication-01-base.png)
 
 
 ## Definición del nodo primario
