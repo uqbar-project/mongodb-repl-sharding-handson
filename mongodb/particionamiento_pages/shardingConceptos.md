@@ -8,15 +8,28 @@ El sharding consiste en distribuir la información en varias máquinas. El parti
 
 ### Shards y chunks
 
-El cluster entero se divide en **shards**, cada uno de estos shards levanta un proceso `mongod` como un **replicaSet**. Los shards pueden estar en diferentes máquinas, o bien en la misma máquina y diferentes puertos. Con la unión de todos los shards tendremos la totalidad de los documentos que forman la base. Dentro de cada shard, los documentos se agrupan en **chunks**, que por defecto ocupa 64 MB.
+El cluster entero se divide en **shards**, cada uno de estos shards levanta un proceso `mongod` como un **replicaSet**. Los shards pueden estar en diferentes máquinas, o bien en la misma máquina y diferentes puertos. Con la unión de todos los shards tendremos la totalidad de los documentos que forman la base.
 
-### Routers para consultas o actualizaciones, shard keys
+Cada shard tiene un conjunto de **chunks** de 64 MB (aunque el tamaño se puede configurar). Los chunks agrupan documentos de similares características en base a la definición de la **shard key**, que veremos a continuación.
 
-La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico. Para ello necesitamos definir la clave de particionamiento o **shard key** con el que vamos a saber a qué shard le corresponde cada documento.
+### Routers para consultas o actualizaciones y shard keys
 
-#### Ranged keys
+La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico. Para ello necesitamos definir la clave de particionamiento o **shard key** con el que vamos a saber a qué _chunk_ debe pertenecer un documento.
 
-#### Hashed keys
+Tres cosas a tener en cuenta
+
+- high cardinality: elegir una shard key que tenga tantos valores como sea posible, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. 
+- low frequency: el dígito verificador hace que tengamos solo 10 valores, por lo tanto 10 chunks.
+- non-monotonically changing in value: esto implica que el crecimiento sea uniforme en el tiempo. En el caso del dígito verificador esto ocurre, porque conforme aparezcan nuevos alumnos los valores 0, 1... 9 irán incorporando valores en forma proporcional. No pasaría esto si elegimos como clave el legajo, ya que claves con índices autoincrementales producen shards desproporcionados (el último shard tendría la mayoría de chunks).
+
+#### Ranged sharded keys
+
+Supongamos que manejamos la base de documentos de los alumnos de la facultad. Cada alumno tiene un legajo, un dígito verificador, el nombre, la carrera y la lista de materias cursadas. Podríamos pensar en armar una clave por dígito verificador, esto permite
+
+- una distribución uniforme
+- 
+
+#### Hashed sharded keys
 
 #### Zones
 
