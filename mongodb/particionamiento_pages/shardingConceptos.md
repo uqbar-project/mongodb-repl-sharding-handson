@@ -6,30 +6,37 @@ El sharding consiste en distribuir la información en varias máquinas. El parti
 
 ![](../../images/sharding/sharding-01-base.png)
 
-### Shards y chunks
+### Shards
 
 El cluster entero se divide en **shards**, cada uno de estos shards levanta un proceso `mongod` como un **replicaSet**. Los shards pueden estar en diferentes máquinas, o bien en la misma máquina y diferentes puertos. Con la unión de todos los shards tendremos la totalidad de los documentos que forman la base.
 
-Cada shard tiene un conjunto de **chunks** de 64 MB (aunque el tamaño se puede configurar). Los chunks agrupan documentos de similares características en base a la definición de la **shard key**, que veremos a continuación.
+### Chunks y shard keys
 
-### Routers para consultas o actualizaciones y shard keys
+Cada shard tiene un conjunto de **chunks** de 64 MB (aunque el tamaño se puede configurar). Los chunks agrupan documentos de similares características en base a la definición de la **shard key** o clave de particionamiento. Por ejemplo, en una base de alumnos de la facultad, una _shard key_ posible es el dígito verificador del legajo, otra el sexo, otra posibilidad es agrupar por año de nacimiento, otra por carrera y dígito verificador del legajo.
 
-La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico. Para ello necesitamos definir la clave de particionamiento o **shard key** con el que vamos a saber a qué _chunk_ debe pertenecer un documento.
+Para elegir una shard key, hay tres cosas fundamentales que debemos tener en cuenta:
 
-Tres cosas a tener en cuenta
+- **alta cardinalidad** (_high cardinality_): la cardinalidad determina la cantidad máxima de chunks que podemos crear, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. Elegir una shard key en base al sexo de los alumnos produciría una situación como la siguiente:
 
-- high cardinality: elegir una shard key que tenga tantos valores como sea posible, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. 
-- low frequency: el dígito verificador hace que tengamos solo 10 valores, por lo tanto 10 chunks.
+![](../../images/sharding/sharding-02-low-cardinality.png)
+
+> Incorporar más shards al cluster no tendría efecto, dado que nuestra clave tiene cardinalidad 3 que es menor a la cantidad de shards instalados. Por lo general, una shard key que produce menos de 50 valores se considera de **baja cardinalidad.**
+
+Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alumno, ya que tendremos solamente 10 chunks para distribuir en cada uno de nuestros shards. Una clave basada en el legajo tiene alta cardinalidad: entonces podemos agruparlos en chunks más pequeños y ajustar el tamaño de los chunks cuando un chunk ocupe más de 64 MB (o el valor que nosotros definamos).
+
+- **baja frecuencia** (low frequency): el dígito verificador hace que tengamos solo 10 valores, por lo tanto 10 chunks.
 - non-monotonically changing in value: esto implica que el crecimiento sea uniforme en el tiempo. En el caso del dígito verificador esto ocurre, porque conforme aparezcan nuevos alumnos los valores 0, 1... 9 irán incorporando valores en forma proporcional. No pasaría esto si elegimos como clave el legajo, ya que claves con índices autoincrementales producen shards desproporcionados (el último shard tendría la mayoría de chunks).
 
 #### Ranged sharded keys
-
-Supongamos que manejamos la base de documentos de los alumnos de la facultad. Cada alumno tiene un legajo, un dígito verificador, el nombre, la carrera y la lista de materias cursadas. Podríamos pensar en armar una clave por dígito verificador, esto permite
 
 - una distribución uniforme
 - 
 
 #### Hashed sharded keys
+
+## Routers
+
+La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
 
 #### Zones
 
