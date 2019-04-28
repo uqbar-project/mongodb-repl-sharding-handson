@@ -24,13 +24,13 @@ Para elegir una shard key, hay tres cosas fundamentales que debemos tener en cue
 
 Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alumno, ya que tendremos solamente 10 chunks para distribuir en cada uno de nuestros shards. Una clave basada en el legajo tiene alta cardinalidad: entonces podemos agruparlos en chunks más pequeños y ajustar el tamaño de los chunks cuando un chunk ocupe más de 64 MB (o el valor que nosotros definamos).
 
-- **baja frecuencia** (low frequency): el dígito verificador hace que tengamos solo 10 valores, por lo tanto 10 chunks.
-- non-monotonically changing in value: esto implica que el crecimiento sea uniforme en el tiempo. En el caso del dígito verificador esto ocurre, porque conforme aparezcan nuevos alumnos los valores 0, 1... 9 irán incorporando valores en forma proporcional. No pasaría esto si elegimos como clave el legajo, ya que claves con índices autoincrementales producen shards desproporcionados (el último shard tendría la mayoría de chunks).
+- **baja frecuencia** (low frequency): se refiere a la probabilidad de ocurrencia o repetición de una clave, y está directamente relacionado con la cardinalidad. Una shard key de alumnos basada en el sexo, tiene una alta frecuencia. Una shard key basada en el legajo tiene una baja frecuencia, lo mismo que la clave basada en el apellido.
+
+- **crecimiento uniforme en el tiempo** (non-monotonically changing in value): en el caso de una shard key basada en el dígito verificador tendremos una distribución proporcional de documentos en cada uno de los chunks. En el caso de una shard key basada en la carrera de un alumno, si tenemos carreras con pocas matrículas y otras con muy alta cantidad de inscriptos, esto no asegura un crecimiento uniforme en el tiempo. Para poder profundizar en este aspecto, necesitamos diferenciar distintos tipos de shard keys.
 
 #### Ranged sharded keys
 
-- una distribución uniforme
-- 
+![](../../images/sharding/sharding-03-ranged-sharding.png)
 
 #### Hashed sharded keys
 
