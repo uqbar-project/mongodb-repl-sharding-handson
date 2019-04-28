@@ -34,11 +34,7 @@ Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alu
 
 #### Hashed sharded keys
 
-## Routers
-
 La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
-
-#### Zones
 
 ### Splitter y balancer
 
@@ -50,12 +46,20 @@ Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga 
 
 ![](../../images/sharding/sharding-migrating.svg)
 
+### Zones
 
-https://www.youtube.com/watch?v=W3HhqMvwZP8
+## Routers
+
 
 ## Material
 
 * https://docs.mongodb.com/manual/sharding/
 * https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
 * https://www.youtube.com/watch?v=qYzYp1bPCPg
+* https://www.youtube.com/watch?v=W3HhqMvwZP8
 * https://docs.mongodb.com/manual/tutorial/deploy-sharded-cluster-hashed-sharding/#deploy-hashed-sharded-cluster-shard-collection
+
+## Links
+
+- [Taller](./shardingTaller.md)
+- [Volver a la página principal](../README.md)
