@@ -74,14 +74,17 @@ Dado que dos legajos contiguos tendrán un hash totalmente diferente, este tipo 
 
 ### Splitter y balancer
 
-, entonces periódicamente corren dos procesos de fondo: el **splitter** que verifica que un nuevo documento insertado no lleve al chunk a exceder de su límite, en cuyo caso se parte el chunk en dos:
+Periódicamente corren dos procesos de fondo:
+
+- el **splitter** que verifica que un nuevo documento insertado no lleve al chunk a exceder de su límite, en cuyo caso se parte el chunk en dos:
 
 ![](../../images/sharding/sharding-splitting.svg)
 
-Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga muchos más datos que otro, por eso un segundo proceso llamado **balancer** se encarga de mantener uniformes los chunks.
+Esto necesita de definir una _shard key_ con alta cardinalidad y baja frecuencia, ya que todos los documentos que comparten la misma shard key deben permanecer en el mismo _chunk_. 
+
+- Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga muchos más datos que otro, por eso un segundo proceso llamado **balancer** se encarga de mantener uniformes los chunks.
 
 ![](../../images/sharding/sharding-migrating.svg)
-
 
 ### Zones
 
