@@ -30,11 +30,47 @@ Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alu
 
 #### Ranged sharded keys
 
+La estrategia por defecto es tener las _shard keys_ en base a un rango de valores. De esta manera los documentos con claves contiguas estarán en el mismo _chunk_ o _shard_. Por ejemplo, si definimos en la colección de alumnos una shard key por legajo:
+
+```js
+> sh.shardCollection("test.alumnos", { "legajo": 1 } )
+```
+
+Entonces los shards agrupan rangos de información, como vemos a continuación:
+
 ![](../../images/sharding/sharding-03-ranged-sharding.png)
+
+Esto facilita las búsquedas por un rango de legajos, dado que es muy probable que los alumnos compartan el mismo _chunk_ o el mismo _shard_:
+
+```js
+test.alumnos.find({ "legajo": { "$gte": 20, "$lte": 50 } })
+```
+
+De todas maneras esta clave **no acepta el crecimiento monótono**: a medida que se incorporan nuevos alumnos, es necesario correr el proceso que ajusta y distribuye los _chunks_ en forma equitativa, para evitar que haya un crecimiento desparejo de los _shards_.
+
+También podemos elegir una shard key de más de dos campos, donde combinemos primero una clave de baja cardinalidad (como la carrera) y otra de alta (como el legajo):
+
+```js
+> sh.shardCollection("test.alumnos", { "carrera": 1, "legajo": 1 } )
+```
+
+Igualmente, elegir una _shard key_ que trabaja por rango solo tiene sentido si el tipo de consultas que vamos a hacer serán filtrando un rango de documentos que tome específicamente dicha clave. En cualquier otro caso donde hagamos una búsqueda puntual por carrera o legajo, nos conviene trabajar con shard keys que utilicen **índices hash**.
 
 #### Hashed sharded keys
 
-La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
+![](../../images/sharding/sharding-04-hashed-sharding.svg)
+
+```js
+sh.shardCollection( "test.alumnos", { "legajo" : "hashed" } )
+```
+
+Si la _shard key_ tiene una alta cardinalidad y baja frecuencia, y queremos asegurar una distribución uniforme entre shards, MongoDB provee una función de [**hashing**](https://en.wikipedia.org/wiki/Hash_function) automática, que funciona de la siguiente manera:
+
+- se elige la shard key, por ejemplo, el legajo del usuario
+- al insertar un documento, MongoDB utiliza la función de hash para convertir el número de legajo en un valor _x_
+- el valor _x_ de hash es utilizado como entrada para determinar el _chunk_ (y por ende el _shard_) que ocupará
+
+Dado que dos legajos contiguos tendrán un hash totalmente diferente, este tipo de configuración no es bueno para consultar los alumnos con legajo 15 al 20. Por otra parte, este tipo de clave eso nos asegura un crecimiento monótono de los _shards_, sin necesidad de un proceso que balancee los _chunks_.
 
 ### Splitter y balancer
 
@@ -46,10 +82,18 @@ Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga 
 
 ![](../../images/sharding/sharding-migrating.svg)
 
+
 ### Zones
+
+### Algunos consejos
+
+**Evitar las optimizaciones prematuras** es un consejo para la profesión en general, y aquí no hay excepciones: debe existir la necesidad concreta de particionar, y debemos tener en claro de qué manera crece la información de nuestro sistema, para poder elegir una _shard key_ lo suficientemente buena para no introducir un problema donde no lo había.
+
+[Learn mongo the hard way](http://learnmongodbthehardway.com/schema/sharding/)
 
 ## Routers
 
+La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
 
 ## Material
 
