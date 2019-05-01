@@ -6,3 +6,4 @@
   * [Replicación con una app en vivo](./particionamiento_pages/replicacionApp.md)
 * **Sharding**
   * [Conceptos](./particionamiento_pages/shardingConceptos.md)
+  * [Taller de Sharding](./particionamiento_pages/shardingTaller.md)
