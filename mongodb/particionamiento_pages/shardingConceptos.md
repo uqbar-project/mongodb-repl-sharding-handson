@@ -6,6 +6,10 @@ El sharding consiste en distribuir la información en varias máquinas. El parti
 
 ![](../../images/sharding/sharding-01-base.png)
 
+### Routers
+
+Nuestra aplicación cliente (ya sea `mongo` o un driver) no se debe conectar directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
+
 ### Shards
 
 El cluster entero se divide en **shards**, cada uno de estos shards levanta un proceso `mongod` como un **replicaSet**. Los shards pueden estar en diferentes máquinas, o bien en la misma máquina y diferentes puertos. Con la unión de todos los shards tendremos la totalidad de los documentos que forman la base.
@@ -80,31 +84,50 @@ Periódicamente corren dos procesos de fondo:
 
 ![](../../images/sharding/sharding-splitting.svg)
 
-Esto necesita de definir una _shard key_ con alta cardinalidad y baja frecuencia, ya que todos los documentos que comparten la misma shard key deben permanecer en el mismo _chunk_. 
+Como hemos visto anteriormente, todos los documentos que comparten la misma shard key deben permanecer en el mismo _chunk_ (lo que se conoce como [_jumbo chunk_](https://docs.mongodb.com/manual/tutorial/split-chunks-in-sharded-cluster/)), por lo tanto la elección de la shard key impacta directamente en este proceso. 
 
 - Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga muchos más datos que otro, por eso un segundo proceso llamado **balancer** se encarga de mantener uniformes los chunks.
 
 ![](../../images/sharding/sharding-migrating.svg)
 
+¿Cuándo es útil que corra el _balancer_?
+
+- cuando al insertar o actualizar un documento el proceso _splitter_ generó nuevos _chunks_ y los shards quedaron desbalanceados
+- cuando uno 
+- al agregar o eliminar shards
+
+Para más información pueden ver cómo [administrar los shards](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/).
+
 ### Zones
 
-### Algunos consejos
+![](../../images/sharding/sharding-03-zones.png)
 
-**Evitar las optimizaciones prematuras** es un consejo para la profesión en general, y aquí no hay excepciones: debe existir la necesidad concreta de particionar, y debemos tener en claro de qué manera crece la información de nuestro sistema, para poder elegir una _shard key_ lo suficientemente buena para no introducir un problema donde no lo había.
+Definir zonas permite segmentar los shards en base a un criterio propio, ya sea para que determinados chunks estén geográficamente próximos o bien para que los shards con mayor capacidad computacional tengan una mayor cantidad de chunks.
 
-[Learn mongo the hard way](http://learnmongodbthehardway.com/schema/sharding/)
+En el ejemplo de arriba, tenemos una aplicación de ventas donde nuestra _shard key_ es compuesta, determinada por la región y el ObjectId de la venta. Es posible entonces definir que todas las ventas de la región mediterránea y el noroeste argentino estarán ubicados en el shard 1, mientras que las ventas del área metropolitana de Buenos Aires estarán en el shard 2. Si hay ventas de otras regiones como el noreste argentino, o la patagonia, pueden ir a parar a cualquier shard, dependiendo de las tareas del balanceador. No tendremos conflictos con los _chunks_, la región **y** el ObjectId de la venta asegura una alta cardinalidad y baja frecuencia de la clave de particionamiento.
 
-## Routers
+Como restricción, no podemos definir zonas que compartan los mismos valores o superpongan rangos de valores. El balanceador asegura que todos los _chunks_ respetarán la zona asignada, y moverá únicamente aquellos _chunks_ que no estén delimitados por una zona.
 
-La aplicación cliente (ya sea `mongo` o un driver) no se conecta directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
+Para maś información, recomendamos leer
+
+- [Manage Shard Zones](https://docs.mongodb.com/manual/tutorial/manage-shard-zone/)
+- [Segmenting Data by Location](https://docs.mongodb.com/manual/tutorial/sharding-segmenting-data-by-location/)
+
+## Conclusiones
+
+El **sharding** es un mecanismo complejo que permite particionar una colección de documentos a través de múltiples máquinas. Algunos casos donde puede ser útil:
+
+- si el servidor ya no puede mantener en memoria la colección de documentos: supongamos que el tamaño de la colección es ahora de 24GB y tenemos asignados un máximo de 16GB de RAM, entonces particionar en dos shards permite que la base pueda crecer un 30% hasta que sea necesario agregar nuevos shards.
+- al separar las operaciones de escritura en varios shards, se permite paralelizar esas tareas (aumenta por lo tanto el [_throughput_](https://en.wikipedia.org/wiki/Throughput) o la capacidad de procesamiento)
+
+El esquema de particionamiento de MongoDB trabaja a varios niveles: a) _chunks_, que agrupa documentos en base a la _shard key_, b) shards, diferenciado por máquinas o puertos, y varios procesos: los **config servers** que mantienen el estado de los shards, los **routers** que saben a qué shard redirigir una consulta o una actualización, el **splitter** que divide los chunks que exceden un cierto límite y el **balancer** que mantiene la distribución equitativa de _chunks_ entre los diferentes _shards_.
+
+Dejamos un consejo que se repite a lo largo de las tecnologías: **evitar las optimizaciones prematuras**. Debe existir la necesidad concreta de particionar, y debemos tener en claro de qué manera crece la información de nuestro sistema, para poder elegir una _shard key_ lo suficientemente buena para no introducir un problema donde no lo había.
 
 ## Material
 
-* https://docs.mongodb.com/manual/sharding/
-* https://docs.mongodb.com/manual/tutorial/deploy-shard-cluster/
-* https://www.youtube.com/watch?v=qYzYp1bPCPg
-* https://www.youtube.com/watch?v=W3HhqMvwZP8
-* https://docs.mongodb.com/manual/tutorial/deploy-sharded-cluster-hashed-sharding/#deploy-hashed-sharded-cluster-shard-collection
+- [Documentación oficial de MongoDB](https://docs.mongodb.com/manual/sharding/)
+- [Learn mongo the hard way](http://learnmongodbthehardway.com/schema/sharding/)
 
 ## Links
 
