@@ -27,7 +27,7 @@ sudo service mongod start
 y ejecutamos la importación desde la consola (no desde el MongoDB shell):
 
 ```bash
-mongoimport  --collection students 'test_data.json'
+mongoimport --collection students 'test_data.json'
 ```
 
 ## Verificación
