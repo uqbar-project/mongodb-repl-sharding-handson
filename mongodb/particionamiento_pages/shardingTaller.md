@@ -154,7 +154,7 @@ child process started successfully, parent exiting
 
 es que hemos conseguido tener levantado nuestra arquitectura!
 
-TODO: Gráfico
+![](../../images/sharding/sharding-05-handson.png)
 
 ## Conectándonos al router
 
