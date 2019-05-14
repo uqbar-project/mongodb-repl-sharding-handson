@@ -54,7 +54,7 @@ mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/repl3 --logp
 Si ejecutamos este comando:
 
 ```bash
-$ ps -fe | grep mongo
+ps -fe | grep mongo
 ```
 
 deberíamos ver 8 procesos, dos correspondientes a los config servers y seis con los shards. Todos son procesos `mongod` (ignoremos el grep):
@@ -132,8 +132,8 @@ mongo --port 27200
 cfg={_id:"shard3", members:[{_id:0 ,host: "127.0.0.1:27200"}, {_id:1 ,host: "127.0.0.1:27201"}]}
 rs.initiate(cfg)
 rs.status()
+exit
 ```
-
 
 ## Iniciar sharding
 
@@ -240,6 +240,8 @@ db.facturas.count()
 
 El resultado te sorprenderá! Jajaja, volvamos al cliente que apunta al router (el del puerto 28001):
 
+## Definiendo la shard key -> por rango
+
 ```js
 use finanzas
 
@@ -304,6 +306,134 @@ sh.shardCollection("finanzas.facturas", { "id": "hashed" })
 	}
 }
 ```
+
+## Otra oportunidad! Otra oportunidad!
+
+Si ingresamos al directorio y eliminamos los shards
+
+```bash
+cd ~/data/mongodb/sharding
+rm -rf cfg1 cfg2 shard1 shard2 shard3 repl1 repl2 repl3
+```
+
+Podemos volver a hacer el taller, pero ahora cambiaremos la configuración para utilizar un índice hashed. Salteamos cuando llegamos al párrafo "Definiendo la shard key -> por rango" y seguimos con esta opción.
+
+## Definiendo la shard key -> hashed
+
+```js
+use finanzas
+
+-- creamos el índice de facturas por hash del número, lo que asegurará buena dispersión
+db.facturas.ensureIndex({"nroFactura": "hashed"})
+
+-- habilitamos el sharding para la database finanzas
+sh.enableSharding("finanzas")
+
+-- definimos la clave por el índice que anteriormente generamos (región y condición de pago ascendente)
+sh.shardCollection("finanzas.facturas", {"nroFactura": "hashed" }, false)
+
+-- corremos el mismo script varias veces
+load("scripts/facts.js")
+load("scripts/facts.js")
+load("scripts/facts.js")
+load("scripts/facts.js")
+load("scripts/facts.js")
+
+-- vemos los chunks que se generaron
+use config
+db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
+```
+
+Y ahora sí:
+
+```json
+{
+	"ns" : "config.system.sessions",
+	"min" : {
+		"_id" : { "$minKey" : 1 }
+	},
+	"max" : {
+		"_id" : { "$maxKey" : 1 }
+	},
+	"shard" : "shard1"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : { "$minKey" : 1 }
+	},
+	"max" : {
+		"nroFactura" : NumberLong("-6148914691236517204")
+	},
+	"shard" : "shard1"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : NumberLong("-6148914691236517204")
+	},
+	"max" : {
+		"nroFactura" : NumberLong("-3074457345618258602")
+	},
+	"shard" : "shard1"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : NumberLong("-3074457345618258602")
+	},
+	"max" : {
+		"nroFactura" : NumberLong(0)
+	},
+	"shard" : "shard2"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : NumberLong(0)
+	},
+	"max" : {
+		"nroFactura" : NumberLong("3074457345618258602")
+	},
+	"shard" : "shard2"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : NumberLong("3074457345618258602")
+	},
+	"max" : {
+		"nroFactura" : NumberLong("6148914691236517204")
+	},
+	"shard" : "shard3"
+}
+{
+	"ns" : "finanzas.facturas",
+	"min" : {
+		"nroFactura" : NumberLong("6148914691236517204")
+	},
+	"max" : {
+		"nroFactura" : { "$maxKey" : 1 }
+	},
+	"shard" : "shard3"
+}
+```
+
+Podemos entrar en cada uno de los shards (mongod en lugar del mongos):
+
+```bash
+mongo --port 27000
+```
+
+Y vemos cuántas facturas se generaron:
+
+```js
+use finanzas
+db.facturas.count()
+// 52680 --> es un estimativo
+```
+
+Lo mismo hacemos en el 27100 (en el ejemplo nos dio 51.175) y en el 27200 (50.495)
 
 ## Links
 
