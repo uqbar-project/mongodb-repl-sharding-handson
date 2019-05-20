@@ -5,14 +5,14 @@
 
 Crear tres carpetas:
 
-* ~/data/mongodb/cluster1
-* ~/data/mongodb/cluster2
-* ~/data/mongodb/cluster3
+* ~/data/mongodb/cluster1/replication
+* ~/data/mongodb/cluster2/replication
+* ~/data/mongodb/cluster3/replication
 
 Definimos la replica para el primer cluster:
 
 ```bash
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster1 --logpath ~/data/mongodb/cluster1/log.cluster1 --port 27058 --smallfiles --oplogSize 50
+mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster1/replication --logpath ~/data/mongodb/replication/cluster1/log.cluster1 --port 27058 --smallfiles --oplogSize 50
 ```
 
 Y accedemos a una sesión de Mongo en el puerto correspondiente:
@@ -46,11 +46,11 @@ db.prueba.insert({x:300,y:200})
 db.prueba.find()
 ```
 
-Volvemos a ejecutar en dos sesiones de consola (no de MongoDB):
+Volvemos a ejecutar en dos sesiones de consola (no de MongoDB), con la opción `--fork` liberamos el control al shell:
 
 ```bash
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster2 --logpath ~/data/mongodb/cluster2/log.cluster2 --port 27059 --smallfiles --oplogSize 50
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster3 --logpath ~/data/mongodb/cluster3/log.cluster3 --port 27060 --smallfiles --oplogSize 50
+mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster2 --logpath ~/data/mongodb/replication/cluster2/log.cluster2 --port 27059 --smallfiles --oplogSize 50 --fork
+mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster3 --logpath ~/data/mongodb/replication/cluster3/log.cluster3 --port 27060 --smallfiles --oplogSize 50 --fork
 ```
 
 Y en la sesión de mongo apuntando al puerto 27058 hacemos:
