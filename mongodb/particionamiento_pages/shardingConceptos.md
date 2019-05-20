@@ -30,7 +30,7 @@ Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alu
 
 - **baja frecuencia** (low frequency): se refiere a la probabilidad de ocurrencia o repetición de una clave, y está directamente relacionado con la cardinalidad. Una shard key de alumnos basada en el sexo, tiene una alta frecuencia. Una shard key basada en el legajo tiene una baja frecuencia, lo mismo que la clave basada en el apellido.
 
-- **crecimiento uniforme en el tiempo** (non-monotonically changing in value): en el caso de una shard key basada en el dígito verificador tendremos una distribución proporcional de documentos en cada uno de los chunks. En el caso de una shard key basada en la carrera de un alumno, si tenemos carreras con pocas matrículas y otras con muy alta cantidad de inscriptos, esto no asegura un crecimiento uniforme en el tiempo. Para poder profundizar en este aspecto, necesitamos diferenciar distintos tipos de shard keys.
+- **crecimiento uniforme en el tiempo** (non-monotonically change): en el caso de una shard key basada en el dígito verificador tendremos una distribución proporcional de documentos en cada uno de los chunks. En el caso de una shard key basada en la carrera de un alumno, si tenemos carreras con pocas matrículas y otras con muy alta cantidad de inscriptos, esto no asegura un crecimiento uniforme en el tiempo. Para poder profundizar en este aspecto, necesitamos diferenciar distintos tipos de shard keys.
 
 #### Ranged sharded keys
 
