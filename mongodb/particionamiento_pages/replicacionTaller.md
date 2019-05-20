@@ -12,7 +12,7 @@ Crear tres carpetas:
 Definimos la replica para el primer cluster:
 
 ```bash
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/cluster1/replication --logpath ~/data/mongodb/cluster1/replication/log.cluster1 --port 27058 --smallfiles --oplogSize 50
+mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/replication/cluster1 --logpath ~/data/mongodb/replication/cluster1/log.cluster1 --port 27058 --smallfiles --oplogSize 50 --fork
 ```
 
 Y accedemos a una sesión de Mongo en el puerto correspondiente:
