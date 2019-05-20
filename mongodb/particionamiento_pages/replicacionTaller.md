@@ -147,6 +147,8 @@ db.getCollection('prueba').find({})
 
 ## Las réplicas son de solo lectura
 
+> **Tip importante**: antes de ejecutar cualquier query en una réplica, debemos ejecutar el comando `rs.slaveOk()` o nos aparecerá el mensaje `not master and slaveOk=false`
+
 Exactamente, si nos conectamos a alguna de las réplicas
 
 ```bash
@@ -163,8 +165,6 @@ WriteResult({ "writeError" : { "code" : 10107, "errmsg" : "not master" } })
 ```
 
 Efectivamente, nos dice que no estamos en master.
-
-> **Tip importante**: si queremos ejecutar queries en una réplica, debemos ejecutar el comando `db.slaveOk()` o nos aparecerá el mensaje `not master and slaveOk=false`
 
 ## Resumen de la arquitectura
 
