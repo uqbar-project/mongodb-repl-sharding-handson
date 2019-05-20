@@ -57,7 +57,7 @@ Y en la sesión de mongo apuntando al puerto 27058 hacemos:
 
 ```js
 // mongo --port 27058
-cfg= {_id:"rs_cluster1",members:[{_id:0, host: "localhost:27058"},{_id:1,host: "localhost:27059"}, { _id:2, host: "localhost:27060" }]}
+cfg= {_id:"rs_cluster1",members:[{_id:0, host: "localhost:27058"},{_id:1,host: "localhost:27059"}, { _id:2, host: "localhost:27060" }], protocolVersion: 1 }
 rs.reconfig(cfg)
 ```
 
