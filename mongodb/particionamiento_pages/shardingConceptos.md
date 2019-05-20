@@ -93,7 +93,6 @@ Como hemos visto anteriormente, todos los documentos que comparten la misma shar
 ¿Cuándo es útil que corra el _balancer_?
 
 - cuando al insertar o actualizar un documento el proceso _splitter_ generó nuevos _chunks_ y los shards quedaron desbalanceados
-- cuando uno 
 - al agregar o eliminar shards
 
 Para más información pueden ver cómo [administrar los shards](https://docs.mongodb.com/manual/tutorial/manage-sharded-cluster-balancer/).
