@@ -103,7 +103,7 @@ Para más información pueden ver cómo [administrar los shards](https://docs.mo
 
 Definir zonas permite segmentar los shards en base a un criterio propio, ya sea para que determinados chunks estén geográficamente próximos o bien para que los shards con mayor capacidad computacional tengan una mayor cantidad de chunks.
 
-En el ejemplo de arriba, tenemos una aplicación de ventas donde nuestra _shard key_ es compuesta, determinada por la región y el ObjectId de la venta. Es posible entonces definir que todas las ventas de la región mediterránea y el noroeste argentino estarán ubicados en el shard 1, mientras que las ventas del área metropolitana de Buenos Aires estarán en el shard 2. Si hay ventas de otras regiones como el noreste argentino, o la patagonia, pueden ir a parar a cualquier shard, dependiendo de las tareas del balanceador. No tendremos conflictos con los _chunks_, la región **y** el ObjectId de la venta asegura una alta cardinalidad y baja frecuencia de la clave de particionamiento.
+En el ejemplo de arriba, tenemos una aplicación de ventas donde nuestra _shard key_ es compuesta, determinada por la región y el ObjectId de la venta. Es posible entonces definir que todas las ventas de la región mediterránea y el noroeste argentino se ubiquen en el shard 1, mientras que las ventas del área metropolitana de Buenos Aires estén en el shard 2. Si hay ventas de otras regiones como el noreste argentino, o la patagonia, pueden ir a parar a cualquier shard, dependiendo de las tareas del balanceador. No tendremos conflictos con los _chunks_, la región **y** el ObjectId de la venta asegura una alta cardinalidad y baja frecuencia de la clave de particionamiento.
 
 Como restricción, no podemos definir zonas que compartan los mismos valores o superpongan rangos de valores. El balanceador asegura que todos los _chunks_ respetarán la zona asignada, y moverá únicamente aquellos _chunks_ que no estén delimitados por una zona.
 
@@ -116,7 +116,7 @@ Para maś información, recomendamos leer
 
 El **sharding** es un mecanismo complejo que permite particionar una colección de documentos a través de múltiples máquinas. Algunos casos donde puede ser útil:
 
-- si el servidor ya no puede mantener en memoria la colección de documentos: supongamos que el tamaño de la colección es ahora de 24GB y tenemos asignados un máximo de 16GB de RAM, entonces particionar en dos shards permite que la base pueda crecer un 30% hasta que sea necesario agregar nuevos shards.
+- si el servidor ya no puede mantener en memoria la colección de documentos: supongamos que el tamaño de la colección es de 24GB y tenemos asignados un máximo de 16GB de RAM, entonces particionar en dos shards permite que la base siga trabajando en memoria, y pueda crecer un 30% hasta que sea necesario agregar nuevos shards.
 - al separar las operaciones de escritura en varios shards, se permite paralelizar esas tareas (aumenta por lo tanto el [_throughput_](https://en.wikipedia.org/wiki/Throughput) o la capacidad de procesamiento)
 
 El esquema de particionamiento de MongoDB trabaja a varios niveles: a) _chunks_, que agrupa documentos en base a la _shard key_, b) shards, diferenciado por máquinas o puertos, y varios procesos: los **config servers** que mantienen el estado de los shards, los **routers** que saben a qué shard redirigir una consulta o una actualización, el **splitter** que divide los chunks que exceden un cierto límite y el **balancer** que mantiene la distribución equitativa de _chunks_ entre los diferentes _shards_.
