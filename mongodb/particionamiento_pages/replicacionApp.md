@@ -80,6 +80,13 @@ Parados en la instancia 27058, en la consola de Mongo, vamos a decir que declina
 rs.stepDown()
 ```
 
+Otra opción más violenta es hacer kill del proceso, o ingresar y bajar el proceso
+
+```js
+use admin
+db.shutdownServer()
+```
+
 Veamos ahora el nuevo estado de nuestro set de réplicas:
 
 ```js
