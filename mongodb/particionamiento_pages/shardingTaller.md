@@ -158,7 +158,7 @@ es que hemos conseguido tener levantado nuestra arquitectura!
 
 ## Conectándonos al router
 
-Bajate el archivo [facts.js](./scripts/facts.js) que está en este repositorio, y ubicalo en el raíz donde estés trabajando.
+Bajate el archivo [facts.js](../../scripts/facts.js) que está en este repositorio, y ubicalo en el raíz donde estés trabajando.
 
 Abriremos ahora una sesión cliente de mongo:
 
