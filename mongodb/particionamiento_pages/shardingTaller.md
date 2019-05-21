@@ -259,13 +259,30 @@ use config
 db.chunks.find({},
 {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
 
--- corremos tres veces más el mismo script
+-- corremos muuuuuchas veces más el mismo script (7 veces mínimo)
+load("scripts/facts.js")
+load("scripts/facts.js")
+load("scripts/facts.js")
+load("scripts/facts.js")
 load("scripts/facts.js")
 load("scripts/facts.js")
 load("scripts/facts.js")
 ```
 
-No obstante, vemos que las facturas siguen yendo al mismo shard, y esto es porque todavía no cubrimos los 64MB que necesita el chunk. Podemos igualmente forzar un split manualmente:
+Y volvemos a ejecutar el query de chunks:
+
+```js
+use config
+db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
+```
+
+Nos conectamos a cada shard para buscar una factura contado de CABA:
+
+```js
+db.facturas.find({"cliente.region": "CABA", "condPago": "CONTADO" }).limit(2).pretty()
+```
+
+Podemos igualmente forzar un split manualmente:
 
 ```js
 sh.splitAt("finanzas.facturas", { "cliente.region": "CENTRO", condPago: "EFECTIVO"  })
