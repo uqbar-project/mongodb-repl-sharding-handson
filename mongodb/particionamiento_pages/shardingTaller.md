@@ -26,6 +26,8 @@ sudo chown -R `id -un` shard* cfg*
 
 ## Levantar los servers de configuración
 
+> **IMPORTANTE:** Los comandos desde Git Bash no deben tener la configuración `--fork` al final sino deben levantar una terminal cada uno:
+
 ```bash
 mongod --replSet rsConf --configsvr --port 26050 --logpath ~/data/mongodb/sharding/log.cfg1 --logappend --dbpath ~/data/mongodb/sharding/cfg1 --fork
 mongod --replSet rsConf --configsvr --port 26051 --logpath ~/data/mongodb/sharding/log.cfg2 --logappend --dbpath ~/data/mongodb/sharding/cfg2 --fork
@@ -36,17 +38,17 @@ Te aparecerán los dos PID (process id) generados.
 ## Levantar shards (instancias de mongod)
 
 ```bash
-mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/shard1 --logpath ~/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/shard1 --logpath ~/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --oplogSize 50
 
-mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/repl1 --logpath ~/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/repl1 --logpath ~/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --oplogSize 50
 
-mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/shard2 --logpath ~/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/shard2 --logpath ~/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --oplogSize 50
 
-mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/repl2 --logpath ~/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/repl2 --logpath ~/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --oplogSize 50
 
-mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/shard3 --logpath ~/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/shard3 --logpath ~/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --oplogSize 50
 
-mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/repl3 --logpath ~/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --smallfiles --oplogSize 50
+mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/repl3 --logpath ~/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --oplogSize 50
 ```
 
 ## Verificación previa
@@ -62,12 +64,12 @@ deberíamos ver 8 procesos, dos correspondientes a los config servers y seis con
 ```bash
 fernando 24798     1  1 20:51 ?        00:00:02 mongod --replSet rsConf --configsvr --port 26050 --logpath /home/fernando/data/mongodb/sharding/log.cfg1 --logappend --dbpath /home/fernando/data/mongodb/sharding/cfg1 --fork
 fernando 24843     1  1 20:51 ?        00:00:02 mongod --replSet rsConf --configsvr --port 26051 --logpath /home/fernando/data/mongodb/sharding/log.cfg2 --logappend --dbpath /home/fernando/data/mongodb/sharding/cfg2 --fork
-fernando 24971     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/repl1 --logpath /home/fernando/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --smallfiles --oplogSize 50
-fernando 25012     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/shard2 --logpath /home/fernando/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --smallfiles --oplogSize 50
-fernando 25050     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/repl2 --logpath /home/fernando/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --smallfiles --oplogSize 50
-fernando 25088     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/shard3 --logpath /home/fernando/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --smallfiles --oplogSize 50
-fernando 25128     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/repl3 --logpath /home/fernando/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --smallfiles --oplogSize 50
-fernando 25310     1  3 20:54 ?        00:00:00 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/shard1 --logpath /home/fernando/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --smallfiles --oplogSize 50
+fernando 24971     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/repl1 --logpath /home/fernando/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --oplogSize 50
+fernando 25012     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/shard2 --logpath /home/fernando/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --oplogSize 50
+fernando 25050     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/repl2 --logpath /home/fernando/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --oplogSize 50
+fernando 25088     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/shard3 --logpath /home/fernando/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --oplogSize 50
+fernando 25128     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/repl3 --logpath /home/fernando/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --oplogSize 50
+fernando 25310     1  3 20:54 ?        00:00:00 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/shard1 --logpath /home/fernando/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --oplogSize 50
 ```
 
 ## Levantando el servicio de ruteo
