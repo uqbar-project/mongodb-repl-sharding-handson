@@ -72,7 +72,7 @@ fernando 25128     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shar
 fernando 25310     1  3 20:54 ?        00:00:00 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/shard1 --logpath /home/fernando/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --oplogSize 50
 ```
 
-## Levantando el servicio de ruteo
+## Configurando los config servers
 
 Ingresamos a un cliente mongo que se conecte a un config server:
 
@@ -80,7 +80,7 @@ Ingresamos a un cliente mongo que se conecte a un config server:
 mongo --port 26050
 ```
 
-Ahora configuraremos el servicio de routing (los `mongos`):
+Ahora configuraremos el servicio replica set de config servers:
 
 ```js
 cfg={_id:"rsConf",members:[{_id:0 ,host: "127.0.0.1:26050"}, {_id: 1, host: "127.0.0.1:26051" }]}
@@ -94,9 +94,9 @@ Hay que asegurarse de que
 - que los puertos donde levantamos los config servers son 26050 y 26051
 - que levantamos los servicios `mongod` como replica set
 
-## Configurar sharding
+## Configurar los shards como replica set
 
-Ahora ingresaremos a cada uno de los shards y configuraremos el servicio de sharding contra los config servers:
+Ahora ingresaremos a cada uno de los nodos master de los shards y configuraremos el replica set:
 
 ```bash
 mongo --port 27000
@@ -139,7 +139,7 @@ exit
 
 ## Iniciar sharding
 
-Levantaremos ahora los servicios de ruteo:
+Levantaremos ahora el servicio de ruteo:
 
 ```bash
 mongos --configdb rsConf/127.0.0.1:26050,127.0.0.1:26051 --fork --logappend --logpath ~/data/mongodb/shardlog --port 28001 --bind_ip 127.0.0.1
