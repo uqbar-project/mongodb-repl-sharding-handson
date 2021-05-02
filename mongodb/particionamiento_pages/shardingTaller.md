@@ -363,86 +363,38 @@ use config
 db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
 ```
 
-O bien,
+O bien, mucho más claro,
 
 ```js
-db.finanzas.getShardDistribution()
+use finanzas
+db.facturas.getShardDistribution()
 ```
 
 
 Y ahora sí:
 
-```json
-{
-	"ns" : "config.system.sessions",
-	"min" : {
-		"_id" : { "$minKey" : 1 }
-	},
-	"max" : {
-		"_id" : { "$maxKey" : 1 }
-	},
-	"shard" : "shard1"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : { "$minKey" : 1 }
-	},
-	"max" : {
-		"nroFactura" : NumberLong("-6148914691236517204")
-	},
-	"shard" : "shard1"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : NumberLong("-6148914691236517204")
-	},
-	"max" : {
-		"nroFactura" : NumberLong("-3074457345618258602")
-	},
-	"shard" : "shard1"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : NumberLong("-3074457345618258602")
-	},
-	"max" : {
-		"nroFactura" : NumberLong(0)
-	},
-	"shard" : "shard2"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : NumberLong(0)
-	},
-	"max" : {
-		"nroFactura" : NumberLong("3074457345618258602")
-	},
-	"shard" : "shard2"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : NumberLong("3074457345618258602")
-	},
-	"max" : {
-		"nroFactura" : NumberLong("6148914691236517204")
-	},
-	"shard" : "shard3"
-}
-{
-	"ns" : "finanzas.facturas",
-	"min" : {
-		"nroFactura" : NumberLong("6148914691236517204")
-	},
-	"max" : {
-		"nroFactura" : { "$maxKey" : 1 }
-	},
-	"shard" : "shard3"
-}
+```
+Shard shard03 at shard03/shard03a:27020,shard03b:27020
+ data : 34.87MiB docs : 111089 chunks : 2
+ estimated data per chunk : 17.43MiB
+ estimated docs per chunk : 55544
+
+Shard shard01 at shard01/shard01a:27018,shard01b:27018
+ data : 36.32MiB docs : 115896 chunks : 2
+ estimated data per chunk : 18.16MiB
+ estimated docs per chunk : 57948
+
+Shard shard02 at shard02/shard02a:27019,shard02b:27019
+ data : 35.29MiB docs : 112585 chunks : 2
+ estimated data per chunk : 17.64MiB
+ estimated docs per chunk : 56292
+
+Totals
+ data : 106.49MiB docs : 339570 chunks : 6
+ Shard shard03 contains 32.74% data, 32.71% docs in cluster, avg obj size on shard : 329B
+ Shard shard01 contains 34.1% data, 34.13% docs in cluster, avg obj size on shard : 328B
+ Shard shard02 contains 33.14% data, 33.15% docs in cluster, avg obj size on shard : 328B
+
 ```
 
 Podemos entrar en cada uno de los shards (mongod en lugar del mongos):
