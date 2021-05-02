@@ -80,7 +80,7 @@ Ingresamos a un cliente mongo que se conecte a un config server:
 mongo --port 26050
 ```
 
-Ahora configuraremos el servicio de routing (los `mongos`):
+Ahora configuraremos el replicaSet de los configServer:
 
 ```js
 cfg={_id:"rsConf",members:[{_id:0 ,host: "127.0.0.1:26050"}, {_id: 1, host: "127.0.0.1:26051" }]}
@@ -96,13 +96,13 @@ Hay que asegurarse de que
 
 ## Configurar sharding
 
-Ahora ingresaremos a cada uno de los shards y configuraremos el servicio de sharding contra los config servers:
+Ahora ingresaremos a cada uno de los nodos y configuraremos el replicaSet de cada shard:
 
 ```bash
 mongo --port 27000
 ```
 
-Configuraremos master y slave para shard1:
+Configuraremos primary y secondary para shard1:
 
 ```js
 cfg={_id:"shard1", members:[{_id:0 ,host: "127.0.0.1:27000"}, {_id:1 ,host: "127.0.0.1:27001" }]}
