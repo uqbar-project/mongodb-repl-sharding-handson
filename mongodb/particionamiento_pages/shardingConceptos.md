@@ -16,19 +16,19 @@ El cluster entero se divide en **shards**, cada uno de estos shards levanta un p
 
 ### Chunks y shard keys
 
-Cada shard tiene un conjunto de **chunks** de 64 MB (aunque el tamaño se puede configurar). Los chunks agrupan documentos de similares características en base a la definición de la **shard key** o clave de particionamiento. Por ejemplo, en una base de alumnos de la facultad, una _shard key_ posible es el dígito verificador del legajo, otra el sexo, otra posibilidad es agrupar por año de nacimiento, otra por carrera y dígito verificador del legajo.
+Cada shard tiene un conjunto de **chunks** de 64 MB (aunque el tamaño se puede configurar). Los chunks agrupan documentos de similares características en base a la definición de la **shard key** o clave de particionamiento. Por ejemplo, en una base de alumnos de la facultad, una _shard key_ posible es el dígito verificador del legajo, otra el género, otra posibilidad es agrupar por año de nacimiento, otra por carrera y dígito verificador del legajo.
 
 Para elegir una shard key, hay tres cosas fundamentales que debemos tener en cuenta:
 
-- **alta cardinalidad** (_high cardinality_): la cardinalidad determina la cantidad máxima de chunks que podemos crear, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. Elegir una shard key en base al sexo de los alumnos produciría una situación como la siguiente:
+- **alta cardinalidad** (_high cardinality_): la cardinalidad determina la cantidad máxima de chunks que podemos crear, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. Elegir una shard key en base al género de los alumnos produciría una situación como la siguiente:
 
-![](../../images/sharding/sharding-02-low-cardinality.png)
+![](../../images/sharding/sharding-02-low-cardinality2.png)
 
 > Incorporar más shards al cluster no tendría efecto, dado que nuestra clave tiene cardinalidad 3 que es menor a la cantidad de shards instalados. Por lo general, una shard key que produce menos de 50 valores se considera de **baja cardinalidad.**
 
 Lo mismo ocurre con una clave que trabaja en base al dígito verificador del alumno, ya que tendremos solamente 10 chunks para distribuir en cada uno de nuestros shards. Una clave basada en el legajo tiene alta cardinalidad: entonces podemos agruparlos en chunks más pequeños y ajustar el tamaño de los chunks cuando un chunk ocupe más de 64 MB (o el valor que nosotros definamos).
 
-- **baja frecuencia** (low frequency): se refiere a la probabilidad de ocurrencia o repetición de una clave, y está directamente relacionado con la cardinalidad. Una shard key de alumnos basada en el sexo, tiene una alta frecuencia. Una shard key basada en el legajo tiene una baja frecuencia, lo mismo que la clave basada en el apellido.
+- **baja frecuencia** (low frequency): se refiere a la probabilidad de ocurrencia o repetición de una clave, y está directamente relacionado con la cardinalidad. Una shard key de alumnos basada en el género, tiene una alta frecuencia. Lo mismo nos ocurre si elegimos como clave el apellido: puede haber un solo Dodino o un solo Dini, pero muchos González o Pérez. Una shard key basada en el legajo tiene una baja frecuencia.
 
 - **crecimiento uniforme en el tiempo** (non-monotonically change): en el caso de una shard key basada en el dígito verificador tendremos una distribución proporcional de documentos en cada uno de los chunks. En el caso de una shard key basada en la carrera de un alumno, si tenemos carreras con pocas matrículas y otras con muy alta cantidad de inscriptos, esto no asegura un crecimiento uniforme en el tiempo. Para poder profundizar en este aspecto, necesitamos diferenciar distintos tipos de shard keys.
 
