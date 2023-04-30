@@ -49,4 +49,4 @@ Que tarda en mi máquina 0.266 segundos (nada mal para 1.000.000 de elementos).
 
 ## Links
 
-* [Volver al menú principal](../README.md)
+* [Volver al menú principal](./README.md)

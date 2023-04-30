@@ -77,7 +77,7 @@ fernando 25310     1  3 20:54 ?        00:00:00 mongod --shardsvr --replSet shar
 Ingresamos a un cliente mongo que se conecte a un config server:
 
 ```bash
-mongo --port 26050
+mongosh --port 26050
 ```
 
 Ahora configuraremos el replicaSet de los configServer:
@@ -99,7 +99,7 @@ Hay que asegurarse de que
 Ahora ingresaremos a cada uno de los nodos y configuraremos el replicaSet de cada shard:
 
 ```bash
-mongo --port 27000
+mongosh --port 27000
 ```
 
 Configuraremos primary y secondary para shard1:
@@ -114,7 +114,7 @@ exit
 Hacemos lo mismo con los otros dos shards:
 
 ```bash
-mongo --port 27100
+mongosh --port 27100
 ```
 
 ```js
@@ -127,7 +127,7 @@ exit
 Y finalmente:
 
 ```bash
-mongo --port 27200
+mongosh --port 27200
 ```
 
 ```js
@@ -165,7 +165,7 @@ Bajate el archivo [facts.js](../../scripts/facts.js) que está en este repositor
 Abriremos ahora una sesión cliente de mongo:
 
 ```bash
-mongo --port 28001
+mongosh --port 28001
 ```
 
 Dentro del shell del router, le definiremos los tres shards:
@@ -230,7 +230,7 @@ db.facturas.count()
 Abrimos 3 ventanas, conectándonos cada una al shard 1, 2 ó 3 primario:
 
 ```bash
-mongo --port 27000  -- luego 27100, y 27200
+mongosh --port 27000  -- luego 27100, y 27200
 ```
 
 y vemos dónde están las facturas:
@@ -400,7 +400,7 @@ Totals
 Podemos entrar en cada uno de los shards (mongod en lugar del mongos):
 
 ```bash
-mongo --port 27000
+mongosh --port 27000
 ```
 
 Y vemos cuántas facturas se generaron:

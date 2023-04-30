@@ -3,62 +3,60 @@
 
 ## Taller para generar réplicas en MongoDB
 
-Crear tres carpetas:
+Vamos a crear 3 réplicas mediante un archivo de Docker Compose, si querés ver cómo se implementa en forma manual podés chequear [esta otra página](./replicacionTallerManual.md).
 
-* ~/data/mongodb/replication/cluster1
-* ~/data/mongodb/replication/cluster2
-* ~/data/mongodb/replication/cluster3
+Crearemos un conjunto de 3 réplicas, cada una con su container. Si bien en cada container estarán usando internamente el puerto 27017, se van a asociar a los puertos de nuestra máquina como 27058, 27059 y 27060 respectivamente.
 
-Definimos la replica para el primer cluster:
+### Configuración de hosts
 
-```bash
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/replication/cluster1 --logpath ~/data/mongodb/replication/cluster1/log.cluster1 --port 27058 --smallfiles --oplogSize 50 --fork
-```
-
-Y accedemos a una sesión de Mongo en el puerto correspondiente:
+Agregar en `/etc/hosts` la asociación entre cada instancia de mongo que vamos a levantar:
 
 ```bash
-mongo --port 27058
+127.0.0.1   localhost mongo1 mongo2 mongo3
 ```
 
-Definimos la variable de configuración apuntando al cluster 1, e iniciamos la réplica:
+Ejecutamos
 
-```js
-> cfg={_id:"rs_cluster1",members:[{_id:0, host:"localhost:27058"}]}
-{
-	"_id" : "rs_cluster1",
-	"members" : [
-		{
-			"_id" : 0,
-			"host" : "localhost:27058"
-		}
-	]
-}
-
-> rs.initiate(cfg)
-{ "ok" : 1 }
+```bash
+./start-replicaset-environment.sh
 ```
 
+### Conexión desde uno de los containers
+
+Y ya podemos acceder a nuestro cluster 1 para agregar información. Podemos conectarnos al container de Docker:
+
+```bash
+docker exec -it mongo1 bash
+```
+
+Y le pedimos levantar el shell:
+
+```bash
+mongosh  # no hace falta poner --port porque dentro del container usamos el puerto 27017, el default
+```
+
+### Conexión mediante Studio3T
+
+Si nos conectamos a Studio3T, al puerto 27058 podemos utilizar la siguiente URI:
+
+```uri
+mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true
+```
+
+Luego creamos una conexión y accedemos al replicaset:
+
+![connect to replicaset via Studio3T](../images/connect_studio3t.gif)
+
+
+## Inserción de datos
+
+Ejecutemos en la instancia primaria este script:
+
 ```js
-db.prueba.insert({x:100})
-db.prueba.insert({x:200})
-db.prueba.insert({x:300,y:200})
+db.prueba.insert({ x:100})
+db.prueba.insert({ x:200})
+db.prueba.insert({ x:300, y:200 })
 db.prueba.find()
-```
-
-Volvemos a ejecutar en dos sesiones de consola (no de MongoDB), con la opción `--fork` liberamos el control al shell:
-
-```bash
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/replication/cluster2 --logpath ~/data/mongodb/replication/cluster2/log.cluster2 --port 27059 --smallfiles --oplogSize 50 --fork
-mongod --replSet rs_cluster1 --dbpath ~/data/mongodb/replication/cluster3 --logpath ~/data/mongodb/replication/cluster3/log.cluster3 --port 27060 --smallfiles --oplogSize 50 --fork
-```
-
-Y en la sesión de mongo apuntando al puerto 27058 hacemos:
-
-```js
-// mongo --port 27058
-cfg= {_id:"rs_cluster1",members:[{_id:0, host: "localhost:27058"},{_id:1,host: "localhost:27059"}, { _id:2, host: "localhost:27060" }], protocolVersion: 1 }
-rs.reconfig(cfg)
 ```
 
 Vemos ahora la configuración de las réplicas:
@@ -128,13 +126,6 @@ rs_cluster1:PRIMARY> rs.conf()
 }
 ```
 
-Hacemos un insert:
-
-```js
-rs_cluster1:PRIMARY> db.prueba.insert({x:184})
-WriteResult({ "nInserted" : 1 })
-```
-
 Abrimos una sesión en Robo3T, accediendo a localhost:27059 (la réplica):
 
 ```js
@@ -143,7 +134,7 @@ db.getCollection('prueba').find({})
 
 ## Demo
 
-![image](../../images/replicacionMongo.gif)
+![image](../images/replicacionMongo.gif)
 
 ## Las réplicas son de solo lectura
 
@@ -152,7 +143,7 @@ db.getCollection('prueba').find({})
 Exactamente, si nos conectamos a alguna de las réplicas
 
 ```bash
-mongo --port 27059
+mongosh --port 27059
 ...
 rs_cluster1:SECONDARY> 
 ```
@@ -168,14 +159,14 @@ Efectivamente, nos dice que no estamos en master.
 
 ## Resumen de la arquitectura
 
-![](../../images/arquitecturaReplicaSetMongoDB.png)
+![](../images/arquitecturaReplicaSetMongoDB.png)
 
 ## Material
 
-* [Conceptos de replicación](https://docs.mongodb.com/manual/replication/)
-* [Deploy](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
+- [Conceptos de replicación](https://docs.mongodb.com/manual/replication/)
+- [Deploy](https://docs.mongodb.com/manual/tutorial/deploy-replica-set/)
 
 ## Links
 
-* [Volver al menú principal](../../README.md)
-* [Volver a particionamiento](../particionamiento.md)
+- [Volver al menú principal](../README.md)
+- [Volver a particionamiento](../particionamiento.md)
