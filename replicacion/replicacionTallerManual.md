@@ -143,7 +143,7 @@ db.getCollection('prueba').find({})
 
 ## Demo
 
-![image](../../images/replicacionMongo.gif)
+![image](../images/replication/replication-mongo-manual.gif)
 
 ## Las réplicas son de solo lectura
 
@@ -152,7 +152,7 @@ db.getCollection('prueba').find({})
 Exactamente, si nos conectamos a alguna de las réplicas
 
 ```bash
-mongsho --port 27059
+mongsosh --port 27059
 ...
 rs_cluster1:SECONDARY> 
 ```
@@ -168,7 +168,7 @@ Efectivamente, nos dice que no estamos en master.
 
 ## Resumen de la arquitectura
 
-![](../../images/arquitecturaReplicaSetMongoDB.png)
+![](../images/replication/replication-architecture-manual.png)
 
 ## Material
 
