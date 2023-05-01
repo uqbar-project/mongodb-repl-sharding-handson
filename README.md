@@ -1,8 +1,11 @@
 
-# Programación con Herramientas Modernas - Apuntes extra
+# PHM: Replicación y Sharding en Mongo DB
 
-Bienvenido al material extra de la materia Programación con Herramientas Modernas. A continuación te dejamos una lista de links de interés:
-
-* MongoDB
-  * [Cómo generar datos random](./generarDatosRandom.md)
-  * [Particionamiento](./particionamiento.md)
+- [Cómo generar datos random](./generarDatosRandom.md)
+- **Replicación**
+  - [Conceptos](./replicacion/replicacionConceptos.md)
+  - [Taller de Replicación](./replicacion/replicacionTaller.md)
+  - [Replicación con una app en vivo](./replicacion/replicacionApp.md)
+- **Sharding**
+  - [Conceptos](./sharding/shardingConceptos.md)
+  - [Taller de Sharding](./sharding/shardingTaller.md)
