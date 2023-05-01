@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DELAY=5
+DELAY=10
 
 docker compose up -d
 

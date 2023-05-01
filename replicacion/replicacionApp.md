@@ -1,52 +1,62 @@
 # Integración de una app con un esquema de replicación en MongoDB
 
-Asumiendo que [ya tenés configuradas tres instancias de MongoDB](./replicacionTaller.md), avanzaremos con la creación de un nodo que oficiará de árbitro, todo en tu misma máquina.
+Asumiendo que [ya tenés configuradas tus instancias de MongoDB](./replicacionTaller.md), aprovecharemos el nodo árbitro que creamos en dicho taller.
 
-La aplicación de los libros está en [este repositorio, en el branch replicaSet](https://github.com/uqbar-project/eg-libros-morphia/tree/replicaSet).
+Tomaremos como ejemplo base la aplicación de [préstamo de libros](https://github.com/uqbar-project/eg-libros-springboot-mongo-kotlin).
 
 # Levantando un árbitro
 
-Crearemos un directorio específico donde se escribirá el log de MongoDB:
+Agregaremos un árbitro al replica set existente:
 
 ```bash
-cd ~/data/mongodb
-mkdir arb
+# nos conectamos al nodo principal
+docker exec -it mongo1 bash
+mongosh
 ```
 
-Y ahora sí levantamos el servicio de árbitro en una terminal bash:
-
-```bash
-mongod --port 27061 --dbpath ~/data/mongodb/arb --replSet rs_cluster1 --bind_ip "localhost"
-```
-
-En una consola de Mongo agregamos la instancia de árbitro:
+Y generamos una nueva instancia:
 
 ```js
-rs.addArb("localhost:27061")
-rs.conf()
+// es necesario avisarle a mongo que vamos a hacer cambios
+db.adminCommand({
+  "setDefaultRWConcern" : 1,
+  "defaultWriteConcern" : {
+    "w" : 2
+  }
+});
+
+// ahora sí podemos agregar la instancia
+rs.addArb("mongo4:27017");
 ```
 
 La configuración nos mostrará un nodo nuevo:
 
 ```js
-    ...
-    {
-        "_id" : 3,
-        "host" : "localhost:27061",
-        "arbiterOnly" : true,
-        "buildIndexes" : true,
-        "hidden" : false,
-        "priority" : 1,
-        "tags" : {
-            
-        },
-        "slaveDelay" : NumberLong(0),
-        "votes" : 1
+{
+  ok: 1,
+  '$clusterTime': {
+    clusterTime: Timestamp({ t: 1682953991, i: 1 }),
+    signature: {
+      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+      keyId: Long("0")
     }
-    ...
+  },
+  operationTime: Timestamp({ t: 1682953991, i: 1 })
+}
 ```
 
-Si vamos al ejemplo de los libros en Morphia, y modificamos el puerto al que nos conectamos:
+Pueden ejecutar el comando `rs.conf()` para confirmar que se levantó la instancia:
+
+```json
+   {
+      _id: 4,
+      host: 'mongo4:27017',
+      arbiterOnly: true,
+```
+
+
+Levantaremos ahora la aplicación en IntelliJ utilizando como environment `replica`:
+
 
 ```xtend
 abstract class AbstractRepository<T> {

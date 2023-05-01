@@ -12,14 +12,22 @@ Crearemos un conjunto de 3 réplicas, cada una con su container. Si bien en cada
 Agregar en `/etc/hosts` la asociación entre cada instancia de mongo que vamos a levantar:
 
 ```bash
-127.0.0.1   localhost mongo1 mongo2 mongo3
+127.0.0.1   localhost mongo1 mongo2 mongo3 mongo4
 ```
 
-Ejecutamos
+Levantamos primero las instancias de mongo:
 
 ```bash
-./start-replicaset-environment.sh
+docker compose up -d
 ```
+
+Y ahora ejecutamos el script de configuración:
+
+```bash
+docker exec mongo1 /scripts/rs-init.sh
+```
+
+A partir de aquí ya podemos trabajar con replicación.
 
 ### Conexión desde uno de los containers
 
@@ -40,126 +48,91 @@ mongosh  # no hace falta poner --port porque dentro del container usamos el puer
 Si nos conectamos a Studio3T, al puerto 27058 podemos utilizar la siguiente URI:
 
 ```uri
-mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true
+mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n+-+primario&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true
 ```
 
 Luego creamos una conexión y accedemos al replicaset:
 
 ![connect to replicaset via Studio3T](../images/connect_studio3t.gif)
 
+## Arquitectura: configuración e inicio
 
-## Inserción de datos
+La arquitectura consiste en una instancia de mongo que actúa como nodo primario (en el puerto 27058) y dos secundarios (puertos 27059 y 27060 respectivamente)
+
+![Arquitectura replicación Mongo DB](../images/arquitecturaReplicaSetMongoDB.png)
+
+Cada uno de estos puertos mapea diferentes contenedores Docker de imágenes de Mongo:
+
+- 27058 - primario - contenedor mongo1
+- 27059 - secundario - contenedor mongo2
+- 27060 - secundario - contenedor mongo3
+
+
+## Escrituras y lecturas en un esquema con replicación
+
+### Inserción de datos en el nodo principal
 
 Ejecutemos en la instancia primaria este script:
 
 ```js
 db.prueba.insert({ x:100})
-db.prueba.insert({ x:200})
-db.prueba.insert({ x:300, y:200 })
+```
+
+### Lectura desde una réplica
+
+Abrimos una sesión, accediendo a localhost:27060 (la réplica). Podés usar esta URI desde Studio 3T:
+
+```uri
+mongodb://127.0.0.1:27060/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n+-+mongo3&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true
+```
+
+```js
+db.prueba.find();
+```
+
+Nos aparece a continuación un mensaje de error
+
+```bash
+MongoServerError: not primary and secondaryOk=false - consider using db.getMongo().setReadPref() or readPreference in the connection string
+```
+
+Configuramos este nodo para que por defecto lea la información localmente de la réplica:
+
+```js
+db.getMongo().setReadPref("secondary")
+```
+
+Ahora sí podemos hacer un find de la colección `prueba`:
+
+```js
 db.prueba.find()
+[ { _id: ObjectId("644fb841bbceb74b685708ea"), x: 100 } ]
 ```
 
-Vemos ahora la configuración de las réplicas:
+![inserción de datos](./images/../../images/insercionDeDatos.gif)
 
-```js
-rs_cluster1:PRIMARY> rs.conf()
-{
-	"_id" : "rs_cluster1",
-	"version" : 78634,
-	"protocolVersion" : NumberLong(1),
-	"members" : [
-		{
-			"_id" : 0,
-			"host" : "localhost:27058",
-			"arbiterOnly" : false,
-			"buildIndexes" : true,
-			"hidden" : false,
-			"priority" : 1,
-			"tags" : {
-				
-			},
-			"slaveDelay" : NumberLong(0),
-			"votes" : 1
-		},
-		{
-			"_id" : 1,
-			"host" : "localhost:27059",
-			"arbiterOnly" : false,
-			"buildIndexes" : true,
-			"hidden" : false,
-			"priority" : 1,
-			"tags" : {
-				
-			},
-			"slaveDelay" : NumberLong(0),
-			"votes" : 1
-		},
-		{
-			"_id" : 2,
-			"host" : "localhost:27060",
-			"arbiterOnly" : false,
-			"buildIndexes" : true,
-			"hidden" : false,
-			"priority" : 1,
-			"tags" : {
-				
-			},
-			"slaveDelay" : NumberLong(0),
-			"votes" : 1
-		}
-	],
-	"settings" : {
-		"chainingAllowed" : true,
-		"heartbeatIntervalMillis" : 2000,
-		"heartbeatTimeoutSecs" : 10,
-		"electionTimeoutMillis" : 10000,
-		"catchUpTimeoutMillis" : 60000,
-		"getLastErrorModes" : {
-			
-		},
-		"getLastErrorDefaults" : {
-			"w" : 1,
-			"wtimeout" : 0
-		},
-		"replicaSetId" : ObjectId("5c88dbd531e2e061dcaa2d8b")
-	}
-}
-```
+Lo mismo podemos hacer desde Studio 3T con ambas conexiones:
 
-Abrimos una sesión en Robo3T, accediendo a localhost:27059 (la réplica):
+![inserción de datos en Studio 3T](./images/../../images/insercionDeDatosStudio3T.gif)
 
-```js
-db.getCollection('prueba').find({})
-```
-
-## Demo
-
-![image](../images/replicacionMongo.gif)
 
 ## Las réplicas son de solo lectura
 
-> **Tip importante**: antes de ejecutar cualquier query en una réplica, debemos ejecutar el comando `rs.slaveOk()` o nos aparecerá el mensaje `not master and slaveOk=false`
-
-Exactamente, si nos conectamos a alguna de las réplicas
+Si nos conectamos a alguna de las réplicas
 
 ```bash
-mongosh --port 27059
-...
-rs_cluster1:SECONDARY> 
+docker exec -it mongo2 bash
+mongosh
 ```
 
 E intentamos agregar un elemento a la colección `prueba`, obtendremos un mensaje de error:
 
 ```js
-db.prueba.insert({x: 50, y: 20, z: 10})
-WriteResult({ "writeError" : { "code" : 10107, "errmsg" : "not master" } })
+dbrs [direct: secondary] test> db.prueba.insertOne({x: 50, y: 20, z: 10})
+MongoServerError: not primary
 ```
 
 Efectivamente, nos dice que no estamos en master.
-
-## Resumen de la arquitectura
-
-![](../images/arquitecturaReplicaSetMongoDB.png)
 
 ## Material
 
@@ -169,4 +142,3 @@ Efectivamente, nos dice que no estamos en master.
 ## Links
 
 - [Volver al menú principal](../README.md)
-- [Volver a particionamiento](../particionamiento.md)
