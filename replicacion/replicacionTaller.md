@@ -3,9 +3,9 @@
 
 ## Taller para generar réplicas en MongoDB
 
-Vamos a crear 3 réplicas mediante un archivo de Docker Compose, si querés ver cómo se implementa en forma manual podés chequear [esta otra página](./replicacionTallerManual.md).
+Si querés ver cómo se implementa en forma manual podés chequear [esta otra página](./replicacionTallerManual.md).
 
-Crearemos un conjunto de 3 réplicas, cada una con su container. Si bien en cada container estarán usando internamente el puerto 27017, se van a asociar a los puertos de nuestra máquina como 27058, 27059 y 27060 respectivamente.
+Mediante la definición de nuestro archivo `docker-compose.yml`, crearemos un conjunto de 3 réplicas, cada una con su container que usará  internamente el puerto 27017. En nuestra máquina se asociarán a los puertos de nuestra máquina como 27058, 27059 y 27060 respectivamente.
 
 ### Configuración de hosts
 
@@ -53,13 +53,15 @@ mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&conne
 
 Luego creamos una conexión y accedemos al replicaset:
 
-![connect to replicaset via Studio3T](../images/connect_studio3t.gif)
+![connect to replicaset via Studio3T](../images/replication/create-connection-3t.gif)
 
+> IMPORTANTE: no crees a mano una conexión utilizando `Replica Set`, dado que no está funcionando.
+ 
 ## Arquitectura: configuración e inicio
 
 La arquitectura consiste en una instancia de mongo que actúa como nodo primario (en el puerto 27058) y dos secundarios (puertos 27059 y 27060 respectivamente)
 
-![Arquitectura replicación Mongo DB](../images/arquitecturaReplicaSetMongoDB.png)
+![Arquitectura replicación Mongo DB](../images/replication/replication-architecture.png)
 
 Cada uno de estos puertos mapea diferentes contenedores Docker de imágenes de Mongo:
 
@@ -67,16 +69,25 @@ Cada uno de estos puertos mapea diferentes contenedores Docker de imágenes de M
 - 27059 - secundario - contenedor mongo2
 - 27060 - secundario - contenedor mongo3
 
+Hay un cuarto nodo, 27061 que utilizaremos [más adelante para la app](./replicacionApp.md).
 
 ## Escrituras y lecturas en un esquema con replicación
 
 ### Inserción de datos en el nodo principal
 
-Ejecutemos en la instancia primaria este script:
+Creamos una base de datos `test` y ejecutamos en la instancia primaria una inserción:
 
 ```js
-db.prueba.insert({ x:100})
+db.prueba.insert({ "dato": 23 })
 ```
+
+Esto lo podemos hacer desde Studio 3T:
+
+![Insertando un dato desde Studio 3T](../images/replication/insert-data-3t.gif)
+
+O bien desde una instancia `mongo1`:
+
+![Insertando un dato desde mongosh](../images/replication/insert-data-mongosh.gif)
 
 ### Lectura desde una réplica
 
@@ -90,30 +101,30 @@ mongodb://127.0.0.1:27060/?retryWrites=false&serverSelectionTimeoutMS=2000&conne
 db.prueba.find();
 ```
 
-Nos aparece a continuación un mensaje de error
+![Lectura desde Studio 3T](../images/replication/read-data-3t.gif)
+
+También podemos hacerlo desde el contenedor de Docker:
+
+```bash
+docker exec -it mongo3 bash
+mongosh
+```
+
+Vemos que al tratar de ver la información de la colección (`db.prueba.find();`), nos aparece un mensaje de error:
 
 ```bash
 MongoServerError: not primary and secondaryOk=false - consider using db.getMongo().setReadPref() or readPreference in the connection string
 ```
 
-Configuramos este nodo para que por defecto lea la información localmente de la réplica:
+Configuramos el nodo para que por defecto lea la información localmente de la réplica:
 
 ```js
 db.getMongo().setReadPref("secondary")
 ```
 
-Ahora sí podemos hacer un find de la colección `prueba`:
+Y luego sí podemos hacer un find de la colección `prueba`.
 
-```js
-db.prueba.find()
-[ { _id: ObjectId("644fb841bbceb74b685708ea"), x: 100 } ]
-```
-
-![inserción de datos](./images/../../images/insercionDeDatos.gif)
-
-Lo mismo podemos hacer desde Studio 3T con ambas conexiones:
-
-![inserción de datos en Studio 3T](./images/../../images/insercionDeDatosStudio3T.gif)
+![Read data - mongosh](../images/replication/read-data-mongosh.gif)
 
 
 ## Las réplicas son de solo lectura
