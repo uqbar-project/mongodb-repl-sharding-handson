@@ -1,8 +1,6 @@
 # Integración de una app con un esquema de replicación en MongoDB
 
-Asumiendo que [ya tenés configuradas tus instancias de MongoDB](./replicacionTaller.md), aprovecharemos el nodo árbitro que creamos en dicho taller.
-
-Tomaremos como ejemplo base la aplicación de [préstamo de libros](https://github.com/uqbar-project/eg-libros-springboot-mongo-kotlin).
+Asumiendo que [ya tenés configuradas tus instancias de MongoDB según el taller](./replicacionTaller.md), aprovecharemos el nodo árbitro que creamos previamente. Tomaremos como ejemplo base la aplicación de [préstamo de libros](https://github.com/uqbar-project/eg-libros-springboot-mongo-kotlin).
 
 # Levantando un árbitro
 
@@ -47,7 +45,7 @@ La configuración nos mostrará un nodo nuevo:
 
 Pueden ejecutar el comando `rs.conf()` para confirmar que se levantó la instancia:
 
-```json
+```js
    {
       _id: 4,
       host: 'mongo4:27017',
@@ -57,30 +55,22 @@ Pueden ejecutar el comando `rs.conf()` para confirmar que se levantó la instanc
 
 Levantaremos ahora la aplicación en IntelliJ utilizando como environment `replica`:
 
+![Levantando App Replicación en IntelliJ](../../images/replicacionMongoApp.gif)
 
-```xtend
-abstract class AbstractRepository<T> {
+En el archivo `application-replica.yml` definimos un origen de datos que se conecta al esquema de replicación:
 
-	static protected Datastore ds
-
-	new() {
-		if (ds === null) {
-			val mongo = new MongoClient("localhost", 27058)
+```yml
+# base documental
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27058/libros?authSource=admin
+...
 ```
 
-Podemos a su vez abrir una sesión de Robo3T y ver cómo los cambios impactan directamente en el nodo réplica:
+Veamos que cuando vamos actualizando la información eso se ve reflejado en las réplicas:
 
-![](../../images/replicacionMongoApp.gif)
-
-## Conectándonos a un Replicaset
-
-Cambiaremos ahora en la clase `AbstractRepository<T>` del mismo ejemplo de libros en Morphia para [conectarnos a múltiples réplicas de Mongo](https://github.com/uqbar-project/eg-libros-morphia/blob/replicaSet/src/main/java/ar/edu/librosMorphia/repos/AbstractRepository.xtend#L20):
-
-```xtend
-    val mongo = new MongoClient(#[new ServerAddress("localhost", 27058),
-            new ServerAddress("localhost", 27059),
-            new ServerAddress("localhost", 27060)])
-```
+![Devolución del préstamo se refleja en las réplicas](../images/replication/update-app-replica.gif)
 
 ## Cambiando el nodo primario
 
@@ -124,7 +114,7 @@ WriteResult({ "writeError" : { "code" : 10107, "errmsg" : "not master" } })
 
 ## Prueba de la app con el nuevo nodo primario
 
-Veamos ahora con la nueva configuración, cómo no es necesario hacer nada del lado de la aplicación, ya que automáticamente pasamos a escribir en el nuevo nodo primario. Y la consulta se puede ver de inmediato en Robo3T:
+Con nuestra configuración de data source no es necesario hacer nada del lado de la aplicación, ya que automáticamente pasamos a escribir en el nuevo nodo primario. Y la consulta se puede ver de inmediato en Robo3T:
 
 ![](../../images/replicacionMongoApp2.gif)
 

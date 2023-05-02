@@ -7,8 +7,10 @@ services:
     volumes:
       - ./scripts/rs-init.sh:/scripts/rs-init.sh
       - ./scripts/init.js:/scripts/init.js
+      - ./scripts/init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
-      - mongo-network
+      mongo-network:
+        ipv4_address: 172.16.238.10
     ports:
       - 27058:27017
     depends_on:
@@ -26,7 +28,8 @@ services:
     container_name: mongo2
     image: mongo:latest
     networks:
-      - mongo-network
+      mongo-network:
+        ipv4_address: 172.16.238.11
     ports:
       - 27059:27017
     restart: always
@@ -36,7 +39,8 @@ services:
     container_name: mongo3
     image: mongo:latest
     networks:
-      - mongo-network
+      mongo-network:
+        ipv4_address: 172.16.238.12
     ports:
       - 27060:27017
     restart: always
@@ -54,4 +58,7 @@ services:
 
 networks:
   mongo-network:
-    driver: bridge
+    ipam:
+      driver: default    # bridge
+      config:
+        - subnet: 172.16.238.0/24
