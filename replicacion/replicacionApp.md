@@ -27,25 +27,10 @@ db.adminCommand({
 rs.addArb("mongo4:27017");
 ```
 
-La configuración nos mostrará un nodo nuevo:
-
-```js
-{
-  ok: 1,
-  '$clusterTime': {
-    clusterTime: Timestamp({ t: 1682953991, i: 1 }),
-    signature: {
-      hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
-      keyId: Long("0")
-    }
-  },
-  operationTime: Timestamp({ t: 1682953991, i: 1 })
-}
-```
-
 Pueden ejecutar el comando `rs.conf()` para confirmar que se levantó la instancia:
 
 ```js
+   ...,
    {
       _id: 4,
       host: 'mongo4:27017',
@@ -53,20 +38,37 @@ Pueden ejecutar el comando `rs.conf()` para confirmar que se levantó la instanc
 ```
 
 
-Levantaremos ahora la aplicación en IntelliJ utilizando como environment `replica`:
+Levantaremos ahora la aplicación en IntelliJ utilizando como environment `replica`. Para eso activamos el menú Run > Edit Configuration y generamos una copia de la configuración que ejecuta la aplicación LibrosApplication:
 
-![Levantando App Replicación en IntelliJ](../../images/replicacionMongoApp.gif)
+![Copy configuration](../images/replication/intellij-run-copy-config.png)
 
-En el archivo `application-replica.yml` definimos un origen de datos que se conecta al esquema de replicación:
+La configuración base se crea cuando activás el botón play en el método `main` de la clase `LibrosApplication`. El nuevo contexto de ejecución de la aplicación solo tendrá como dato diferente el valor `replica` para `Active Profiles`:
+
+![Levantando App Replicación en IntelliJ](../images/replication/intellij-run-replica-env.png)
+
+Eso permite que tome información del archivo `application-replica.yml`, donde definimos un origen de datos que se conecta al esquema de replicación:
 
 ```yml
 # base documental
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27058/libros?authSource=admin
+      uri: mongodb://admin:admin@172.16.238.10:27017,172.16.238.11:27017,172.16.238.12:27017/libros?authSource=admin&replicaSet=dbrs
 ...
 ```
+
+El formato que tiene el data source es:
+
+- mongodb: el driver
+- usuario:password
+- una lista de IPs/puertos, que son los que tuvimos que definir en el archivo [docker-compose.yml](./docker-compose.yml) y que deben coincidir con los que [definimos en el replicaset](./rs-init.sh) o de lo contrario Springboot los eliminaría
+- la base de datos luego de la barra `/`, en este caso es libros
+- como datos adicionales: el authentication source que es la base de datos donde está definido el usuario admin (que es admin)...
+- ... y el nombre del replicaset: dbrs
+
+### Replicación en marcha
+
+TODO: hasta acá
 
 Veamos que cuando vamos actualizando la información eso se ve reflejado en las réplicas:
 
@@ -135,4 +137,4 @@ abr 09, 2019 8:09:35 PM com.mongodb.diagnostics.logging.JULLogger log
 
 ## Resumen arquitectura
 
-![](../../images/replicaSetMongoDBApp.png)
+![](../images/replication/replica-set-mongodb-app.png)
