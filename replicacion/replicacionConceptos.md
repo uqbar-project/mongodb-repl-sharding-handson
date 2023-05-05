@@ -7,7 +7,7 @@ La replicación consiste en tener copias o _réplicas_ de una base de datos orig
 
 Nosotros podemos conectarnos con un cliente (proceso **mongo**) a cualquiera de los nodos, pero **solo podremos insertar, actualizar o eliminar documentos en el nodo primario**.
 
-![](../images/replication/replication-01-base-3.png)
+![Replicación - Arquitectura](../images/replication/replication-01-base-3.png)
 
 
 ## Definición del nodo primario
@@ -16,13 +16,13 @@ Cualquier nodo es elegible en primera instancia como nodo primario. A partir de 
 
 Como hemos visto antes, un proceso **mongod** puede configurarse como nodo primario o secundario, pero también existe la figura del **árbitro** (_arbiter_), como mediador entre todos los nodos para escuchar los _heartbeats_ y en el caso de tener corriendo una cantidad par de instancias de Mongo, para desempatar los votos sobre qué nodo debe actuar como primario.
 
-![](../../images/replication/replicacionConArbitro.svg)
+![](../images/replication/replicacionConArbitro.svg)
 
 ## Qué pasa cuando cae el nodo primario
 
 Cuando el nodo primario sufre una falla, deja de enviar su _heartbeat_. El árbitro espera un tiempo prudencial (ya que puede haber un tiempo de latencia de la red), y cuando determina que el nodo primario está caído se lleva a cabo la votación por el nuevo nodo primario.
 
-![](../../images/replication/replicacionCaidaPrimario.svg)
+![](../images/replication/replicacionCaidaPrimario.svg)
 
 A partir de este momento, el nuevo nodo primario puede comenzar a recibir pedidos de los clientes. En promedio la documentación de MongoDB calcula que el proceso de detección de caída del nodo primario y la elección de un nuevo nodo puede llevar aproximadamente 12 segundos, dependiendo de la configuración y del tiempo de latencia de la red.
 
@@ -33,7 +33,7 @@ La replicación tiene **consistencia eventual**, lo que trae como consecuencia
 * el nodo primario actualiza la información
 * si hacemos la consulta a un nodo secundario, hay un momento en el que la información estará desactualizada, hasta que corra el proceso que regenere los datos
 
-![](../../images/replication/consistenciaEventual.jpg)
+![](../images/replication/consistenciaEventual.jpg)
 
 ## Links útiles
 
