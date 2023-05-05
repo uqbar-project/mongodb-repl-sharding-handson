@@ -50,7 +50,8 @@ services:
     container_name: mongo4
     image: mongo:latest
     networks:
-      - mongo-network
+      mongo-network:
+        ipv4_address: 172.16.238.13
     ports:
       - 27061:27017
     restart: always
