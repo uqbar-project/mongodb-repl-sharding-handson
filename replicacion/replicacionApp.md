@@ -121,7 +121,7 @@ Aquí veremos cuál es nuestro nuevo nodo primario (elegido por el nodo árbitro
 
 Como nuestra aplicación utiliza un data source basado en un set de réplicas, solo basta enviar la información y el nodo primario se encarga de actualizar el documento, replicando luego al resto de los nodos secundarios:
 
-![](../../images/replicacion/replica-primary-secondary.gif)
+![](../images/replication/replica-primary-secondary.gif)
 
 - no es necesario restartear nada
 - la instancia mongo1 se cae, en ese interín deja de estar disponible como nodo secundario
@@ -143,6 +143,4 @@ Execution of command with request id 152 completed successfully in 0.42 ms on co
 
 Lo que ocurre dentro del backend no se ve reflejado en la aplicación que sigue ejecutándose normalmente.
 
-## Resumen arquitectura
-
-![](../images/replication/replica-set-mongodb-app.png)
+![Paso de nodo primario a secundario](../images/replication/replica-set-mongodb-app.png)
