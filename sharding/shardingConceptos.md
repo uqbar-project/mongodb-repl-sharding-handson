@@ -4,11 +4,11 @@ El sharding consiste en distribuir la información en varias máquinas. El parti
 
 ## Diagrama general de la solución con sharding
 
-![](../../images/sharding/sharding-01-base.png)
+![](../images/sharding/sharding-01-base.png)
 
 ### Routers
 
-Nuestra aplicación cliente (ya sea `mongo` o un driver) no se debe conectar directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
+Nuestra aplicación cliente (ya sea `mongosh` o un driver) no se debe conectar directamente al proceso `mongod` del shard, sino al proceso `mongos` que actúa como router para redirigir las consultas o actualizaciones hacia un shard específico.
 
 ### Shards
 
@@ -22,7 +22,7 @@ Para elegir una shard key, hay tres cosas fundamentales que debemos tener en cue
 
 - **alta cardinalidad** (_high cardinality_): la cardinalidad determina la cantidad máxima de chunks que podemos crear, dado que todos los documentos que tienen la misma shard key deben estar en el mismo chunk. Elegir una shard key en base al género de los alumnos produciría una situación como la siguiente:
 
-![](../../images/sharding/sharding-02-low-cardinality2.png)
+![Baja cardinalidad de una clave de particionamiento](../images/sharding/sharding-02-low-cardinality2.png)
 
 > Incorporar más shards al cluster no tendría efecto, dado que nuestra clave tiene cardinalidad 3 que es menor a la cantidad de shards instalados. Por lo general, una shard key que produce menos de 50 valores se considera de **baja cardinalidad.**
 
@@ -42,7 +42,7 @@ La estrategia por defecto es tener las _shard keys_ en base a un rango de valore
 
 Entonces los shards agrupan rangos de información, como vemos a continuación:
 
-![](../../images/sharding/sharding-03-ranged-sharding.png)
+![Sharding por rango](../images/sharding/sharding-03-ranged-sharding.png)
 
 Esto facilita las búsquedas por un rango de legajos, dado que es muy probable que los alumnos compartan el mismo _chunk_ o el mismo _shard_:
 
@@ -62,7 +62,7 @@ Igualmente, elegir una _shard key_ que trabaja por rango solo tiene sentido si e
 
 #### Hashed sharded keys
 
-![](../../images/sharding/sharding-04-hashed-sharding.svg)
+![Sharding por hash](../images/sharding/sharding-04-hashed-sharding.svg)
 
 ```js
 sh.shardCollection( "test.alumnos", { "legajo" : "hashed" } )
@@ -82,13 +82,13 @@ Periódicamente corren dos procesos de fondo:
 
 - el **splitter** que verifica que un nuevo documento insertado no lleve al chunk a exceder de su límite, en cuyo caso se parte el chunk en dos:
 
-![](../../images/sharding/sharding-splitting.svg)
+![Sharding - proceso splitter](../images/sharding/sharding-splitting.svg)
 
 Como hemos visto anteriormente, todos los documentos que comparten la misma shard key deben permanecer en el mismo _chunk_ (lo que se conoce como [_jumbo chunk_](https://docs.mongodb.com/manual/tutorial/split-chunks-in-sharded-cluster/)), por lo tanto la elección de la shard key impacta directamente en este proceso. 
 
 - Por otra parte, la creación de nuevos chunks puede llevar a que un shard tenga muchos más datos que otro, por eso un segundo proceso llamado **balancer** se encarga de mantener uniformes los chunks.
 
-![](../../images/sharding/sharding-migrating.svg)
+![Sharding - proceso balancer](../images/sharding/sharding-migrating.svg)
 
 ¿Cuándo es útil que corra el _balancer_?
 
@@ -99,7 +99,7 @@ Para más información pueden ver cómo [administrar los shards](https://docs.mo
 
 ### Zones
 
-![](../../images/sharding/sharding-03-zones.png)
+![Sharding - Zonas](../images/sharding/sharding-03-zones.png)
 
 Definir zonas permite segmentar los shards en base a un criterio propio, ya sea para que determinados chunks estén geográficamente próximos o bien para que los shards con mayor capacidad computacional tengan una mayor cantidad de chunks.
 
