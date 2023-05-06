@@ -99,7 +99,9 @@ Podemos ver la arquitectura resultante (gracias al usuario `minhhungit` por la i
 
 ## Insertando un set de datos
 
-Nos conectaremos a continuación a alguna de las instancias del router:
+Nos conectaremos a continuación a alguna de las instancias del router, por ejemplo a `router-01`:
+
+![conexión router](../images/sharding/sharding-connection.png)
 
 ```bash
 docker exec -it router-01 bash
@@ -159,11 +161,11 @@ db.facturas.countDocuments()
 
 ¡El resultado te sorprenderá! Pese a que activamos el sharding, todas las facturas están en un solo shard, mientras que el resto de los shards está vacío.
 
+![Sharding sin configurar](../images/sharding/sharding-no-config.png)
+
 ![Decepción](../images/sharding/disappointed.png)
 
 ## Definiendo la shard key -> por rango
-
-TODO
 
 Volvamos al cliente que apunta al router (el del puerto 28001):
 
