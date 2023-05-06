@@ -1,105 +1,164 @@
 # Taller de Sharding
 
-Este tutorial sigue los pasos de [este instructivo](https://github.com/minhhungit/mongodb-cluster-docker-compose) para trabajar con contenedores Docker de MongoDB. Si querés ver cómo se logra generar el sharding en forma manual, podés ver [esta página](./shardingTallerManual.md).
+## Crear carpetas asociadas a los shards
 
-## Advertencia para Windows y MacOS
+Crear estas carpetas:
 
-TODO
+* ~/data/mongodb/sharding/shard1
+* ~/data/mongodb/sharding/repl1
+* ~/data/mongodb/sharding/shard2
+* ~/data/mongodb/sharding/repl2
+* ~/data/mongodb/sharding/shard3
+* ~/data/mongodb/sharding/repl3
+* ~/data/mongodb/sharding/cfg1
+* ~/data/mongodb/sharding/cfg2 
 
-## Inicio del sharding
+`~` es el equivalente al directorio del usuario (`/home/fernando` o `C:\Users\Fernando`), principalmente por un tema de permisos.
 
-### 1. Levantando los contenedores
-
-Desde la carpeta `sharding` en una terminal o Git Bash ejecutás:
-
-```bash
-docker compose up -d
-```
-
-Al final de la ejecución podés probar que los containers se levantaron correctamente:
-
-```bash
-docker ps
-CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS          PORTS                                           NAMES
-f94bddfe4c84   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27121->27017/tcp, :::27121->27017/tcp   mongo-config-03
-787f970d7688   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27120->27017/tcp, :::27120->27017/tcp   mongo-config-02
-4bd17eec81d0   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27119->27017/tcp, :::27119->27017/tcp   mongo-config-01
-a665e6bf8339   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27122->27017/tcp, :::27122->27017/tcp   shard-01-node-a
-54170db8265e   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27128->27017/tcp, :::27128->27017/tcp   shard-03-node-a
-832b8f354424   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27125->27017/tcp, :::27125->27017/tcp   shard-02-node-a
-22218f53ac7d   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27118->27017/tcp, :::27118->27017/tcp   router-02
-ba446aad6d94   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27130->27017/tcp, :::27130->27017/tcp   shard-03-node-c
-2ed1db76fef8   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27126->27017/tcp, :::27126->27017/tcp   shard-02-node-b
-f7f42f4963f1   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27127->27017/tcp, :::27127->27017/tcp   shard-02-node-c
-0fd0cecd1873   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27123->27017/tcp, :::27123->27017/tcp   shard-01-node-b
-5ee2e51330ab   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27124->27017/tcp, :::27124->27017/tcp   shard-01-node-c
-3b0d00d12ec2   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27117->27017/tcp, :::27117->27017/tcp   router-01
-ad0a1f3efca0   mongo:latest   "docker-entrypoint.s…"   14 hours ago   Up 21 minutes   0.0.0.0:27129->27017/tcp, :::27129->27017/tcp   shard-03-node-b
-
-```
-
-### 2. Levantar los servers de configuración
+En cada una configurar desde Git Bash o la consola Linux los siguientes permisos
 
 ```bash
-docker compose exec configsvr01 sh -c "mongosh < /scripts/init-configserver.js"
+cd ~/data/mongodb/sharding
+mkdir cfg1 cfg2 shard1 shard2 shard3 repl1 repl2 repl3
+sudo chmod 775 shard* cfg*
+sudo chown -R `id -un` shard* cfg*
 ```
 
-### 3. Levantar shards (instancias de mongod)
+## Levantar los servers de configuración
+
+> **IMPORTANTE:** Los comandos desde Git Bash no deben tener la configuración `--fork` al final sino deben levantar una terminal cada uno:
 
 ```bash
-docker compose exec shard01-a sh -c "mongosh < /scripts/init-shard01.js"
-docker compose exec shard02-a sh -c "mongosh < /scripts/init-shard02.js"
-docker compose exec shard03-a sh -c "mongosh < /scripts/init-shard03.js"
+mongod --replSet rsConf --configsvr --port 26050 --logpath ~/data/mongodb/sharding/log.cfg1 --logappend --dbpath ~/data/mongodb/sharding/cfg1 --fork
+mongod --replSet rsConf --configsvr --port 26051 --logpath ~/data/mongodb/sharding/log.cfg2 --logappend --dbpath ~/data/mongodb/sharding/cfg2 --fork
 ```
 
-Cada shard va a tener un esquema de replicación de 3 instancias. Por ejemplo, el shard01 tendrá
+Te aparecerán los dos PID (process id) generados.
 
-- un nodo primario: shard01-a
-- dos nodos secundarios: shard01-b y shard01-c
-
-Recordá que lo podés ver conectándote a un nodo: `docker exec -it shard-01-node-a bash` y en `mongosh` chequear la configuración con `rs.status()`.
-
-El nodo 2 tendrá como nodo primario shard02-a y como nodos secundarios shard02-b y shard02-c. Para conectarte al contenedor tenés que usar el nombre `shard-02-node-a`. En general los nombres de cada contenedor serán `shard-xx-node-y` donde `xx` es el número de shard (1, 2, 3), `y` es el nodo de réplica (a, b, c).
-
-### 4. Levantar routers
-
-Dejando pasar un cierto tiempo (45 segundos por ejemplo), levantamos todas las instancias:
+## Levantar shards (instancias de mongod)
 
 ```bash
-docker compose exec router01 sh -c "mongosh < /scripts/init-router.js"
+mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/shard1 --logpath ~/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --oplogSize 50
+
+mongod --shardsvr --replSet shard1 --dbpath ~/data/mongodb/sharding/repl1 --logpath ~/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --oplogSize 50
+
+mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/shard2 --logpath ~/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --oplogSize 50
+
+mongod --shardsvr --replSet shard2 --dbpath ~/data/mongodb/sharding/repl2 --logpath ~/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --oplogSize 50
+
+mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/shard3 --logpath ~/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --oplogSize 50
+
+mongod --shardsvr --replSet shard3 --dbpath ~/data/mongodb/sharding/repl3 --logpath ~/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --oplogSize 50
 ```
 
-### 5. Verificación
+## Verificación previa
 
-Para estar seguros de que todo está correctamente configurado, ejecutamos:
+Si ejecutamos este comando:
 
 ```bash
-docker compose exec router01 mongosh --port 27017
+ps -fe | grep mongo
 ```
 
-Y luego
+deberíamos ver 8 procesos, dos correspondientes a los config servers y seis con los shards. Todos son procesos `mongod` (ignoremos el grep):
+
+```bash
+fernando 24798     1  1 20:51 ?        00:00:02 mongod --replSet rsConf --configsvr --port 26050 --logpath /home/fernando/data/mongodb/sharding/log.cfg1 --logappend --dbpath /home/fernando/data/mongodb/sharding/cfg1 --fork
+fernando 24843     1  1 20:51 ?        00:00:02 mongod --replSet rsConf --configsvr --port 26051 --logpath /home/fernando/data/mongodb/sharding/log.cfg2 --logappend --dbpath /home/fernando/data/mongodb/sharding/cfg2 --fork
+fernando 24971     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/repl1 --logpath /home/fernando/data/mongodb/sharding/log.repl1 --port 27001 --fork --logappend --oplogSize 50
+fernando 25012     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/shard2 --logpath /home/fernando/data/mongodb/sharding/log.shard2 --port 27100 --fork --logappend --oplogSize 50
+fernando 25050     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard2 --dbpath /home/fernando/data/mongodb/sharding/repl2 --logpath /home/fernando/data/mongodb/sharding/log.repl2 --port 27101 --fork --logappend --oplogSize 50
+fernando 25088     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/shard3 --logpath /home/fernando/data/mongodb/sharding/log.shard3 --port 27200 --fork --logappend --oplogSize 50
+fernando 25128     1  1 20:52 ?        00:00:01 mongod --shardsvr --replSet shard3 --dbpath /home/fernando/data/mongodb/sharding/repl3 --logpath /home/fernando/data/mongodb/sharding/log.repl3 --port 27201 --fork --logappend --oplogSize 50
+fernando 25310     1  3 20:54 ?        00:00:00 mongod --shardsvr --replSet shard1 --dbpath /home/fernando/data/mongodb/sharding/shard1 --logpath /home/fernando/data/mongodb/sharding/log.shard1 --port 27000 --fork --logappend --oplogSize 50
+```
+
+## Levantando el servicio de ruteo
+
+Ingresamos a un cliente mongo que se conecte a un config server:
+
+```bash
+mongosh --port 26050
+```
+
+Ahora configuraremos el replicaSet de los configServer:
 
 ```js
-sh.status()
+cfg={_id:"rsConf",members:[{_id:0 ,host: "127.0.0.1:26050"}, {_id: 1, host: "127.0.0.1:26051" }]}
+rs.initiate(cfg)
+exit
 ```
 
-Aquí deberías ver que tenemos
+Hay que asegurarse de que
 
-- los 3 shards activos (rs-shard-01, rs-shard-02 y rs-shard-03)
-- los servicios que tenemos activos (autosplit o splitter, balancer)
-- y las bases de datos deben aparecer como particionadas
+- el nombre `rsConf` es el mismo que le dimos a los nombres de los replica set correspondientes a los configuration servers
+- que los puertos donde levantamos los config servers son 26050 y 26051
+- que levantamos los servicios `mongod` como replica set
 
-![verificacion sharding](../images/sharding/sh-status.gif)
+## Configurar sharding
 
-## Arquitectura del esquema de sharding
+Ahora ingresaremos a cada uno de los nodos y configuraremos el replicaSet de cada shard:
 
-Podemos ver la arquitectura resultante (gracias al usuario `minhhungit` por la imagen):
+```bash
+mongosh --port 27000
+```
 
-![Arquitectura de sharding](../images/sharding/sharding-handson-architecture.png)
+Configuraremos primary y secondary para shard1:
 
-## Insertando un set de datos
+```js
+cfg={_id:"shard1", members:[{_id:0 ,host: "127.0.0.1:27000"}, {_id:1 ,host: "127.0.0.1:27001" }]}
+rs.initiate(cfg)
+rs.status()
+exit
+```
 
-TODO: esto ya debería poder usarse
+Hacemos lo mismo con los otros dos shards:
+
+```bash
+mongosh --port 27100
+```
+
+```js
+cfg={_id:"shard2", members:[{_id:0 ,host: "127.0.0.1:27100"}, {_id:1 ,host: "127.0.0.1:27101" }]}
+rs.initiate(cfg)
+rs.status()
+exit
+```
+
+Y finalmente:
+
+```bash
+mongosh --port 27200
+```
+
+```js
+cfg={_id:"shard3", members:[{_id:0 ,host: "127.0.0.1:27200"}, {_id:1 ,host: "127.0.0.1:27201"}]}
+rs.initiate(cfg)
+rs.status()
+exit
+```
+
+## Iniciar sharding
+
+Levantaremos ahora los servicios de ruteo:
+
+```bash
+mongos --configdb rsConf/127.0.0.1:26050,127.0.0.1:26051 --fork --logappend --logpath ~/data/mongodb/shardlog --port 28001 --bind_ip 127.0.0.1
+```
+
+Si vemos un mensaje como el siguiente
+
+```bash
+2019-05-07T19:28:58.716-0300 W SHARDING [main] Running a sharded cluster with fewer than 3 config servers should only be done for testing purposes and is not recommended for production.
+about to fork child process, waiting until server is ready for connections.
+forked process: 17925
+child process started successfully, parent exiting
+```
+
+es que hemos conseguido tener levantado nuestra arquitectura!
+
+![](../../images/sharding/sharding-05-handson.png)
+
+## Conectándonos al router
 
 Bajate el archivo [facts.js](../../scripts/facts.js) que está en este repositorio, y ubicalo en el raíz donde estés trabajando.
 
