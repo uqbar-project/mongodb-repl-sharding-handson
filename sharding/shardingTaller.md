@@ -99,91 +99,73 @@ Podemos ver la arquitectura resultante (gracias al usuario `minhhungit` por la i
 
 ## Insertando un set de datos
 
-TODO: esto ya debería poder usarse
-
-Bajate el archivo [facts.js](../../scripts/facts.js) que está en este repositorio, y ubicalo en el raíz donde estés trabajando.
-
-Abriremos ahora una sesión cliente de mongo:
+Nos conectaremos a continuación a alguna de las instancias del router:
 
 ```bash
-mongosh --port 28001
+docker exec -it router-01 bash
 ```
 
-Dentro del shell del router, le definiremos los tres shards:
+Crearemos una database `finanzas` y cargaremos 30.000 facturas que se encuentran en [este archivo](./scripts/facturas.js). Lo bueno es que en la configuración de [docker compose](./docker-compose.yml) ya le dijimos que lo copie al contenedor, al directorio `scripts`. Vamos a chequear que el archivo `facturas.js` esté ahí:
 
-```js
-sh.addShard("shard1/127.0.0.1:27000")
-sh.addShard("shard2/127.0.0.1:27100")
-sh.addShard("shard3/127.0.0.1:27200")
+```bash
+ls -la /scripts
+...
+-rw-rw-r-- 1 1000 1000 13627495 Apr 30 14:56 facturas.js
 ```
 
-Si todo anduvo ok, vas a ver los tres shards y sus réplicas con este comando:
+Además de los otros scripts que utilizamos para levantar las instancias, está el archivo facturas. Ahora activamos el shell de mongo:
 
-```js
-db.adminCommand( { listShards: 1 } )
-{
-	"shards" : [
-		{
-			"_id" : "shard1",
-			"host" : "shard1/127.0.0.1:27000,127.0.0.1:27001",
-			"draining" : true,
-			"state" : 1
-		},
-		{
-			"_id" : "shard2",
-			"host" : "shard2/127.0.0.1:27100,127.0.0.1:27101",
-			"state" : 1
-		},
-		{
-			"_id" : "shard3",
-			"host" : "shard3/127.0.0.1:27200,127.0.0.1:27201",
-			"state" : 1
-		}
-	],
-	"ok" : 1,
-	"operationTime" : Timestamp(1557273747, 1),
-	"$clusterTime" : {
-		"clusterTime" : Timestamp(1557273747, 1),
-		"signature" : {
-			"hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
-			"keyId" : NumberLong(0)
-		}
-	}
-}
+```bash
+mongosh
 ```
 
-Siempre dentro del shell, crearemos una database `finanzas` y cargaremos las 30.000 facturas, para lo cual es importante que ubiques el lugar donde se encuentre el archivo `facts.js` que te descargaste antes:
+y agregamos la información desde la nueva database:
 
 ```js
 use finanzas
-load("facts.js")  // revisá en qué directorio lo descargaste
+load("/scripts/facturas.js")
 ```
 
 Ahora podés probar cuántas facturas hay cargadas:
 
 ```js
 db
-finanzas  // la base es finanzas
-db.facturas.count()
-30870
+//finanzas -> confirmamos que la base es finanzas
+db.facturas.countDocuments()
+// 30870
 ```
 
 Abrimos 3 ventanas, conectándonos cada una al shard 1, 2 ó 3 primario:
 
 ```bash
-mongosh --port 27000  -- luego 27100, y 27200
+docker compose exec shard01-a mongosh
+# fíjense que acá estamos usando shard01-a porque referenciamos a la definición de docker compose
+# si no deberíamos hacer 
+# docker exec -it shard-01-node-a bash
+# porque `shard-01-node-a` es el nombre que le pusimos al contenedor
+
+# y luego desde otra terminal (hay que chequear cuál es el nodo primario, o ejecutar `db.getMongo().setReadPref("secondary")`)
+docker compose exec shard02-a mongosh
+# y luego desde otra terminal
+docker compose exec shard03-a mongosh
 ```
 
 y vemos dónde están las facturas:
 
 ```js
 use finanzas
-db.facturas.count()
+db.facturas.countDocuments()
 ```
 
-El resultado te sorprenderá! Jajaja, volvamos al cliente que apunta al router (el del puerto 28001):
+¡El resultado te sorprenderá! Pese a que activamos el sharding, todas las facturas están en un solo shard, mientras que el resto de los shards está vacío.
+
+![Decepción](../images/sharding/disappointed.png)
 
 ## Definiendo la shard key -> por rango
+
+TODO
+
+Volvamos al cliente que apunta al router (el del puerto 28001):
 
 ```js
 use finanzas
