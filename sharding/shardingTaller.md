@@ -4,7 +4,7 @@ Este tutorial sigue los pasos de [este instructivo](https://github.com/minhhungi
 
 ## Advertencia para Windows y MacOS
 
-TODO
+Si tenés algún inconveniente con definición de volúmenes en Mac o Windows, chequeá [esta página](https://github.com/docker-library/docs/blob/b78d49c9dffe5dd8b3ffd1db338c62b9e1fc3db8/mongo/content.md#where-to-store-data).
 
 ## Inicio del sharding
 
