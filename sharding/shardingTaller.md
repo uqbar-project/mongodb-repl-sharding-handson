@@ -228,7 +228,7 @@ docker compose exec router02 sh -c "mongosh < /scripts/buscarFactura.js"
 
 Como ves, cualquiera de los routers son capaces de encontrar el documento dentro del conjunto de shards.
 
-TODO: Diagrama de conectarnos al router vs. conectarnos a un shard.
+![Conexión al router vs. conexión al shard](../images/sharding/connect-router-vs-shard.png)
 
 ### La distribución todavía es desigual
 
