@@ -167,13 +167,19 @@ db.facturas.countDocuments()
 
 ## Definiendo la shard key -> por rango
 
-Volvamos al cliente que apunta al router (el del puerto 28001):
+Volvamos al cliente que apunta al router:
+
+```bash
+docker exec -it router-01 bash
+```
+
+[Crearemos los índices](https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/#mongodb-method-db.collection.createIndex) y activaremos el sharding, relacionando la **clave de particionamiento** con el índice que acabamos de generar:
 
 ```js
 use finanzas
 
--- creamos el índice de facturas por región y condición de pago
-db.facturas.ensureIndex({"cliente.region":1,"condPago":1})
+-- creamos el índice de facturas por región y condición de pago (1 -> ascendente)
+db.facturas.createIndex({"cliente.region":1,"condPago":1})
 
 -- habilitamos el sharding para la database finanzas
 sh.enableSharding("finanzas")
@@ -187,71 +193,99 @@ db.chunks.find({},
 {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
 
 -- corremos muuuuuchas veces más el mismo script (7 veces mínimo)
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
 ```
 
-Y volvemos a ejecutar el query de chunks:
+### Acceso por shard vs. acceso por router
+
+Nos conectamos a cada shard para buscar una factura contado de CABA (fijate el script [`buscarFactura`](./scripts/buscarFactura.js) que creamos porque Mongo es muy molesto con el tema de tener que configurar la preferencia para las réplicas):
 
 ```js
-use config
-db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
+docker compose exec shard01-a sh -c "mongosh < /scripts/buscarFactura.js"
+docker compose exec shard02-a sh -c "mongosh < /scripts/buscarFactura.js"
+docker compose exec shard03-a sh -c "mongosh < /scripts/buscarFactura.js"
 ```
 
-Nos conectamos a cada shard para buscar una factura contado de CABA:
+Fijate que si te conectás a un shard específico sólo vas a poder ver la información de ese shard particular. Esto es distinto si ejecutás la misma consulta en el router (proceso `mongos`), que es lo que deberíamos hacer normalmente:
 
 ```js
-db.facturas.find({"cliente.region": "CABA", "condPago": "CONTADO" }).limit(2).pretty()
+docker compose exec router01 sh -c "mongosh < /scripts/buscarFactura.js"
+docker compose exec router02 sh -c "mongosh < /scripts/buscarFactura.js"
 ```
 
-Podemos igualmente forzar un split manualmente:
+Como ves, cualquiera de los routers son capaces de encontrar el documento dentro del conjunto de shards.
+
+TODO: Diagrama de conectarnos al router vs. conectarnos a un shard.
+
+### La distribución todavía es desigual
+
+Veamos ahora cómo está la distribución:
+
+```js
+docker compose exec shard01-a sh -c "mongosh < /scripts/cuantasFacturas.js"
+docker compose exec shard02-a sh -c "mongosh < /scripts/cuantasFacturas.js"
+docker compose exec shard03-a sh -c "mongosh < /scripts/cuantasFacturas.js"
+```
+
+Hm... todavía vemos todo en un solo shard. Si preguntamos por la configuración de sharding: `db.facturas.getShardDistribution()` es posible que notes que hay un solo chunk:
+
+```js
+{
+  data: '72.6MiB',
+  docs: 246960,
+  chunks: 1,
+  'estimated data per chunk': '72.6MiB',
+  'estimated docs per chunk': 246960
+}
+```
+
+Es decir, todavía no se ejecutó el splitter. Podemos igualmente forzar un split manualmente, siempre desde el router01:
 
 ```js
 sh.splitAt("finanzas.facturas", { "cliente.region": "CENTRO", condPago: "EFECTIVO"  })
 ```
 
-Esto ahora produce que en el router veamos
+Esto ahora produce que aparezcan nuevos chunks:
 
 ```js
-use finanzas
-db.facturas.count()
-176880
+sh.status()
+// output, fijate en collections la cantidad de chunks que tenés, si son pocos es posible
+// que el balancer los mantenga en el mismo shard porque es una operación que cuesta pasar
+// todo un chunk de ~64 MB por la red
+...
+    collections: {
+      'finanzas.facturas': {
+        shardKey: { 'cliente.region': 1, condPago: 1 },
+        unique: false,
+        balancing: true,
+        chunkMetadata: [ { shard: 'rs-shard-01', nChunks: 6 } ],
 ```
 
-mientras que en el tercer shard (o aquel donde teníamos todos los documentos)
+aunque no te garantiza que la información se distribuya en diferentes shards, eso depende de cuánta información estemos guardando, el tamaño de cada chunk, etc.
 
-```js
-use finanzas
-db.facturas.count()
-123480
-```
-
-Podríamos definir una clave _hashed_, pero eso ya no es tan fácil ahora que hemos definido los shards:
+¿Podemos cambiar la clave a _hashed_? Eso no es posible una vez que definimos los shards:
 
 ```js
 sh.shardCollection("finanzas.facturas", { "id": "hashed" })
-{
-	"ok" : 0,
-	"errmsg" : "sharding already enabled for collection finanzas.facturas with options { _id: \"finanzas.facturas\", lastmodEpoch: ObjectId('5cd2295e081f213b3f3044c3'), lastmod: new Date(4294967296), dropped: false, key: { cliente.region: 1.0, condPago: 1.0 }, unique: false, uuid: UUID(\"2e521d61-3e0d-4646-8884-15d1dbc63300\") }",
-	"code" : 23,
-	"codeName" : "AlreadyInitialized",
-	"operationTime" : Timestamp(1557277375, 4),
-	"$clusterTime" : {
-		"clusterTime" : Timestamp(1557277375, 4),
-		"signature" : {
-			"hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
-			"keyId" : NumberLong(0)
-		}
-	}
-}
+MongoServerError: sharding already enabled for collection finanzas.facturas
 ```
 
 ## Otra oportunidad! Otra oportunidad!
+
+TODO: Dropear la colección y volver a cargar las facturas
 
 Si ingresamos al directorio y eliminamos los shards
 
