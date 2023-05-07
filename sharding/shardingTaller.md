@@ -213,7 +213,7 @@ load("/scripts/facturas.js")
 
 Nos conectamos a cada shard para buscar una factura contado de CABA (fijate el script [`buscarFactura`](./scripts/buscarFactura.js) que creamos porque Mongo es muy molesto con el tema de tener que configurar la preferencia para las réplicas):
 
-```js
+```bash
 docker compose exec shard01-a sh -c "mongosh < /scripts/buscarFactura.js"
 docker compose exec shard02-a sh -c "mongosh < /scripts/buscarFactura.js"
 docker compose exec shard03-a sh -c "mongosh < /scripts/buscarFactura.js"
@@ -234,7 +234,7 @@ TODO: Diagrama de conectarnos al router vs. conectarnos a un shard.
 
 Veamos ahora cómo está la distribución:
 
-```js
+```bash
 docker compose exec shard01-a sh -c "mongosh < /scripts/cuantasFacturas.js"
 docker compose exec shard02-a sh -c "mongosh < /scripts/cuantasFacturas.js"
 docker compose exec shard03-a sh -c "mongosh < /scripts/cuantasFacturas.js"
@@ -271,7 +271,7 @@ sh.status()
         shardKey: { 'cliente.region': 1, condPago: 1 },
         unique: false,
         balancing: true,
-        chunkMetadata: [ { shard: 'rs-shard-01', nChunks: 6 } ],
+        chunkMetadata: [ { shard: 'rs-shard-01', nChunks: 2 } ],
 ```
 
 aunque no te garantiza que la información se distribuya en diferentes shards, eso depende de cuánta información estemos guardando, el tamaño de cada chunk, etc.
@@ -285,16 +285,12 @@ MongoServerError: sharding already enabled for collection finanzas.facturas
 
 ## Otra oportunidad! Otra oportunidad!
 
-TODO: Dropear la colección y volver a cargar las facturas
-
-Si ingresamos al directorio y eliminamos los shards
+Eliminemos la colección de facturas desde alguna de las instancias del router:
 
 ```bash
-cd ~/data/mongodb/sharding
-rm -rf cfg1 cfg2 shard1 shard2 shard3 repl1 repl2 repl3
+use finanzas
+db.dropDatabase("facturas")
 ```
-
-Podemos volver a hacer el taller, pero ahora cambiaremos la configuración para utilizar un índice hashed. Salteamos cuando llegamos al párrafo "Definiendo la shard key -> por rango" y seguimos con esta opción.
 
 ## Definiendo la shard key -> hashed
 
@@ -311,11 +307,16 @@ sh.enableSharding("finanzas")
 sh.shardCollection("finanzas.facturas", {"nroFactura": "hashed" }, false)
 
 -- corremos el mismo script varias veces
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
-load("scripts/facts.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
+load("/scripts/facturas.js")
 
 -- vemos los chunks que se generaron
 use config
@@ -329,48 +330,66 @@ use finanzas
 db.facturas.getShardDistribution()
 ```
 
-
 Y ahora sí:
 
 ```
-Shard shard03 at shard03/shard03a:27020,shard03b:27020
- data : 34.87MiB docs : 111089 chunks : 2
- estimated data per chunk : 17.43MiB
- estimated docs per chunk : 55544
-
-Shard shard01 at shard01/shard01a:27018,shard01b:27018
- data : 36.32MiB docs : 115896 chunks : 2
- estimated data per chunk : 18.16MiB
- estimated docs per chunk : 57948
-
-Shard shard02 at shard02/shard02a:27019,shard02b:27019
- data : 35.29MiB docs : 112585 chunks : 2
- estimated data per chunk : 17.64MiB
- estimated docs per chunk : 56292
-
+Shard rs-shard-02 at rs-shard-02/shard02-a:27017,shard02-b:27017,shard02-c:27017
+{
+  data: '30.08MiB',
+  docs: 102350,
+  chunks: 2,
+  'estimated data per chunk': '15.04MiB',
+  'estimated docs per chunk': 51175
+}
+---
+Shard rs-shard-03 at rs-shard-03/shard03-a:27017,shard03-b:27017,shard03-c:27017
+{
+  data: '29.71MiB',
+  docs: 100990,
+  chunks: 2,
+  'estimated data per chunk': '14.85MiB',
+  'estimated docs per chunk': 50495
+}
+---
+Shard rs-shard-01 at rs-shard-01/shard01-a:27017,shard01-b:27017,shard01-c:27017
+{
+  data: '30.95MiB',
+  docs: 105360,
+  chunks: 2,
+  'estimated data per chunk': '15.47MiB',
+  'estimated docs per chunk': 52680
+}
+---
 Totals
- data : 106.49MiB docs : 339570 chunks : 6
- Shard shard03 contains 32.74% data, 32.71% docs in cluster, avg obj size on shard : 329B
- Shard shard01 contains 34.1% data, 34.13% docs in cluster, avg obj size on shard : 328B
- Shard shard02 contains 33.14% data, 33.15% docs in cluster, avg obj size on shard : 328B
-
+{
+  data: '90.75MiB',
+  docs: 308700,
+  chunks: 6,
+  'Shard rs-shard-02': [
+    '33.14 % data',
+    '33.15 % docs in cluster',
+    '308B avg obj size on shard'
+  ],
+  'Shard rs-shard-03': [
+    '32.74 % data',
+    '32.71 % docs in cluster',
+    '308B avg obj size on shard'
+  ],
+  'Shard rs-shard-01': [
+    '34.1 % data',
+    '34.13 % docs in cluster',
+    '308B avg obj size on shard'
+  ]
+}
 ```
 
-Podemos entrar en cada uno de los shards (mongod en lugar del mongos):
+Podemos entrar en cada uno de los shards y ver cuántas facturas se generaron:
 
 ```bash
-mongosh --port 27000
+docker compose exec shard01-a sh -c "mongosh < /scripts/cuantasFacturas.js"
+docker compose exec shard02-a sh -c "mongosh < /scripts/cuantasFacturas.js"
+docker compose exec shard03-a sh -c "mongosh < /scripts/cuantasFacturas.js"
 ```
-
-Y vemos cuántas facturas se generaron:
-
-```js
-use finanzas
-db.facturas.count()
-// 52680 --> es un estimativo
-```
-
-Lo mismo hacemos en el 27100 (en el ejemplo nos dio 51.175) y en el 27200 (50.495)
 
 ## Links
 
