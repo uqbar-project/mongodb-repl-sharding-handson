@@ -9,7 +9,7 @@ Agregaremos un árbitro al replica set existente:
 ```bash
 # nos conectamos al nodo principal
 docker exec -it mongo1 bash
-mongosh
+mongosh --retryWrites=true
 ```
 
 Y generamos una nueva instancia:

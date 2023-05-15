@@ -58,8 +58,9 @@ docker exec -it mongo1 bash
 Y le pedimos levantar el shell:
 
 ```bash
-mongosh  # no hace falta poner --port porque dentro del container usamos el puerto 27017, el default
-         # tampoco usuario ni password
+# no hace falta poner --port porque dentro del container usamos el puerto 27017, el default
+# tampoco usuario ni password
+mongosh --retryWrites=false # importante es el parámetro de referencia
 ```
 
 ### Opción 2: Conexión mediante Studio3T
@@ -88,7 +89,7 @@ Luego creamos una conexión y accedemos al replicaset:
 Creamos una base de datos `test` y ejecutamos en la instancia primaria una inserción:
 
 ```js
-db.prueba.insert({ "dato": 23 })
+db.prueba.insertOne({ "dato": 23 })
 ```
 
 Esto lo podemos hacer desde Studio 3T:
