@@ -68,20 +68,20 @@ mongosh --retryWrites=false # importante es el parámetro de referencia
 Si nos conectamos a Studio3T podemos utilizar la siguiente URI para conectarnos al nodo primario:
 
 ```uri
-mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n+-+primario&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true
+mongodb://localhost:27058,localhost:27059,localhost:27060/?retryWrites=true&replicaSet=dbrs&readPreference=primary&serverSelectionTimeoutMS=5000&connectTimeoutMS=10000
 ```
-
-Las opciones para conectarnos al nodo primario son:
-
-- utilizar la IP localhost: `127.0.0.1` y el puerto `27058` (el que publica el contenedor)
-- utilizar la IP propia del contenedor: `172.16.238.10` y el puerto `27017` (el que usa internamente el contenedor)
 
 Luego creamos una conexión y accedemos al replicaset:
 
 ![connect to replicaset via Studio3T](../images/replication/create-connection-3t.gif)
 
-> IMPORTANTE: no crees a mano una conexión utilizando `Replica Set`, dado que no está funcionando. Trabajá únicamente importando la URI.
- 
+Si queremos conectarnos exclusivamente al nodo primario las opciones son:
+
+- utilizar la IP localhost: `127.0.0.1` y el puerto `27058` (el que publica el contenedor)
+- utilizar la IP propia del contenedor: `172.16.238.10` y el puerto `27017` (el que usa internamente el contenedor)
+- si querés importar una URI podés utilizar esta variante: `mongodb://127.0.0.1:27058/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n+-+primario&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true`
+
+
 ## Escrituras y lecturas en un esquema con replicación
 
 ### Inserción de datos en el nodo principal
@@ -102,7 +102,7 @@ O bien desde una instancia `mongo1`:
 
 ### Lectura desde una réplica
 
-Abrimos una sesión, accediendo a localhost:27060 (la réplica). Podés usar esta URI desde Studio 3T:
+Abrimos una sesión, accediendo a localhost:27060 (la réplica). Si querés acceder únicamente a la réplica podés usar esta URI desde Studio 3T:
 
 ```uri
 mongodb://127.0.0.1:27060/?retryWrites=false&serverSelectionTimeoutMS=2000&connectTimeoutMS=10000&3t.uriVersion=3&3t.connection.name=Replicaci%C3%B3n+-+mongo3&3t.alwaysShowAuthDB=true&3t.alwaysShowDBFromUserRole=true

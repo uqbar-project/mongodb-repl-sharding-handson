@@ -189,8 +189,7 @@ sh.shardCollection("finanzas.facturas", {"cliente.region":1,"condPago":1 },false
 
 -- vemos los chunks que se generaron
 use config
-db.chunks.find({},
-{min:1,max:1,shard:1,_id:0,ns:1}).pretty()
+db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
 
 -- corremos muuuuuchas veces más el mismo script (7 veces mínimo)
 load("/scripts/facturas.js")
@@ -221,7 +220,7 @@ docker compose exec shard03-a sh -c "mongosh < /scripts/buscarFactura.js"
 
 Fijate que si te conectás a un shard específico sólo vas a poder ver la información de ese shard particular. Esto es distinto si ejecutás la misma consulta en el router (proceso `mongos`), que es lo que deberíamos hacer normalmente:
 
-```js
+```bash
 docker compose exec router01 sh -c "mongosh < /scripts/buscarFactura.js"
 docker compose exec router02 sh -c "mongosh < /scripts/buscarFactura.js"
 ```
@@ -289,6 +288,7 @@ Eliminemos la colección de facturas desde alguna de las instancias del router:
 
 ```bash
 use finanzas
+# TODO: remover la clave de particionamiento solamente
 db.dropDatabase("facturas")
 ```
 
