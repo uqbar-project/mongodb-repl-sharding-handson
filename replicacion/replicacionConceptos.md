@@ -5,9 +5,9 @@ La replicación consiste en tener copias o _réplicas_ de una base de datos orig
 * un proceso **mongod** central o nodo primario que procesa las actualizaciones y mantiene los documentos actualizados. A su vez en segundo plano (_background_) se genera un log con las novedades para...
 * ...los otros procesos **mongod** que actúan como _replica set_ o nodos secundarios, reciben ese log y asincrónicamente actualizan la misma información.
 
-Nosotros podemos conectarnos con un cliente (proceso **mongo**) a cualquiera de los nodos, pero **solo podremos insertar, actualizar o eliminar documentos en el nodo primario**.
+Nosotros podemos conectarnos con un cliente (proceso **mongosh**) a cualquiera de los nodos, pero **solo podremos insertar, actualizar o eliminar documentos en el nodo primario**.
 
-![Replicación - Arquitectura](../images/replication/replication-01-base-3.png)
+![Replicación - Arquitectura](../images/replication/replication-01-base-4.png)
 
 
 ## Definición del nodo primario
