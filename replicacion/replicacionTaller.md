@@ -11,7 +11,7 @@ Mediante la definición de nuestro archivo `docker-compose.yml`, crearemos un co
 
 La arquitectura consiste en una instancia de mongo que actúa como nodo primario (en el puerto 27058) y dos secundarios (puertos 27059 y 27060 respectivamente)
 
-![Arquitectura replicación Mongo DB](../images/replication/replication-architecture-impl.png)
+![Arquitectura replicación Mongo DB](../images/replication/replication-01-base-4.png)
 
 Cada uno de estos puertos mapea diferentes contenedores Docker de imágenes de Mongo:
 
