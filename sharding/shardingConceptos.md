@@ -130,5 +130,5 @@ Dejamos un consejo que se repite a lo largo de las tecnologías: **evitar las op
 
 ## Links
 
-- [Taller](./shardingTaller.md)
+- [Taller de Sharding](./shardingTaller.md)
 - [Volver a la página principal](../README.md)
