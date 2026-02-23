@@ -171,6 +171,7 @@ Volvamos al cliente que apunta al router:
 
 ```bash
 docker exec -it router-01 bash
+mongosh
 ```
 
 [Crearemos los índices](https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/#mongodb-method-db.collection.createIndex) y activaremos el sharding, relacionando la **clave de particionamiento** con el índice que acabamos de generar:
@@ -190,6 +191,14 @@ sh.shardCollection("finanzas.facturas", {"cliente.region":1,"condPago":1 },false
 -- vemos los chunks que se generaron
 use config
 db.chunks.find({}, {min:1,max:1,shard:1,_id:0,ns:1}).pretty()
+
+-- previamente, vamos a bajar el tamaño del chunk a 2 MB
+use config
+db.settings.updateOne(
+   { _id: "chunksize" },
+   { $set: { _id: "chunksize", value: 2 } }, // Seteamos 2 MB por chunk
+   { upsert: true }
+)
 
 -- corremos muuuuuchas veces más el mismo script (7 veces mínimo)
 load("/scripts/facturas.js")
@@ -229,7 +238,7 @@ Como ves, cualquiera de los routers son capaces de encontrar el documento dentro
 
 ![Conexión al router vs. conexión al shard](../images/sharding/connect-router-vs-shard.png)
 
-### La distribución todavía es desigual
+### Chequeando la distribución
 
 Veamos ahora cómo está la distribución:
 
@@ -239,41 +248,32 @@ docker compose exec shard02-a sh -c "mongosh < /scripts/cuantasFacturas.js"
 docker compose exec shard03-a sh -c "mongosh < /scripts/cuantasFacturas.js"
 ```
 
-Hm... todavía vemos todo en un solo shard. Si preguntamos por la configuración de sharding: `db.facturas.getShardDistribution()` es posible que notes que hay un solo chunk:
+Otra opción es conectarte al router
 
-```js
-{
-  data: '72.6MiB',
-  docs: 246960,
-  chunks: 1,
-  'estimated data per chunk': '72.6MiB',
-  'estimated docs per chunk': 246960
-}
+```bash
+docker exec -it router-01 bash
+mongosh
 ```
 
-Es decir, todavía no se ejecutó el splitter. Podemos igualmente forzar un split manualmente, siempre desde el router01:
+y ejecutar
+
+```js
+sh.status()
+```
+
+Si vieras que la distribución no fuera suficientemente uniforme, podrías forzar la ejecución del splitter en forma manual, siempre desde el router01:
 
 ```js
 sh.splitAt("finanzas.facturas", { "cliente.region": "CENTRO", condPago: "EFECTIVO"  })
 ```
 
-Esto ahora produce que aparezcan nuevos chunks:
+Esto puede demorar algunos minutos, si estás muy urgido existe la opción de mover el chunk a un shard específico:
 
 ```js
-sh.status()
-// output, fijate en collections la cantidad de chunks que tenés, si son pocos es posible
-// que el balancer los mantenga en el mismo shard porque es una operación que cuesta pasar
-// todo un chunk de ~64 MB por la red
-...
-    collections: {
-      'finanzas.facturas': {
-        shardKey: { 'cliente.region': 1, condPago: 1 },
-        unique: false,
-        balancing: true,
-        chunkMetadata: [ { shard: 'rs-shard-01', nChunks: 2 } ],
+sh.moveChunk("finanzas.facturas", { "cliente.region": "CENTRO", "condPago": "CONTADO" }, "rs-shard-02")
 ```
 
-aunque no te garantiza que la información se distribuya en diferentes shards, eso depende de cuánta información estemos guardando, el tamaño de cada chunk, etc.
+pero debería bastar con la configuración del chunk pequeño (2 MB), ya que la información de nuestra base no pesa mucho. Por defecto, el chunk size es de 64 MB.
 
 ¿Podemos cambiar la clave a _hashed_? Eso no es posible una vez que definimos los shards:
 
@@ -288,8 +288,7 @@ Eliminemos la colección de facturas desde alguna de las instancias del router:
 
 ```bash
 use finanzas
-# TODO: remover la clave de particionamiento solamente
-db.dropDatabase("facturas")
+db.facturas.drop()
 ```
 
 ## Definiendo la shard key -> hashed
@@ -298,7 +297,7 @@ db.dropDatabase("facturas")
 use finanzas
 
 -- creamos el índice de facturas por hash del número, lo que asegurará buena dispersión
-db.facturas.ensureIndex({"nroFactura": "hashed"})
+db.facturas.createIndex({"nroFactura": "hashed"})
 
 -- habilitamos el sharding para la database finanzas
 sh.enableSharding("finanzas")
