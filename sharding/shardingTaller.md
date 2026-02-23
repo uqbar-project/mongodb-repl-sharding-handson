@@ -132,7 +132,7 @@ Ahora podés probar cuántas facturas hay cargadas:
 
 ```js
 db
-//finanzas -> confirmamos que la base es finanzas
+// finanzas -> confirmamos que la base es finanzas
 db.facturas.countDocuments()
 // 30870
 ```
@@ -203,6 +203,8 @@ db.settings.updateOne(
 -- corremos muuuuuchas veces más el mismo script (7 veces mínimo)
 load("/scripts/facturas.js")
 load("/scripts/facturas.js")
+
+-- a medida que se ejecuta, veamos cómo cambia la conformación de cada shard: db.facturas.countDocuments()
 load("/scripts/facturas.js")
 load("/scripts/facturas.js")
 load("/scripts/facturas.js")
@@ -329,7 +331,7 @@ use finanzas
 db.facturas.getShardDistribution()
 ```
 
-Y ahora sí:
+Y vemos que la distribución es todavía más uniforme:
 
 ```
 Shard rs-shard-02 at rs-shard-02/shard02-a:27017,shard02-b:27017,shard02-c:27017
