@@ -1,28 +1,21 @@
-version: '3.8'
-
 services:
   mongo1:
     container_name: mongo1
     image: mongo:latest
     volumes:
-      - ./scripts/rs-init.sh:/scripts/rs-init.sh
+      - ./scripts/rs-init.sh:/scripts/rs-init.sh:ro
       - ./scripts/init.js:/scripts/init.js
-      - ./scripts/init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     networks:
       mongo-network:
         ipv4_address: 172.16.238.10
     ports:
-      - 27058:27017
+      - 127.0.0.1:27017:27017
     depends_on:
       - mongo2
       - mongo3
       - mongo4
-    links:
-      - mongo2
-      - mongo3
-      - mongo4
     restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+    command: ["--bind_ip_all", "--replSet", "dbrs"]
 
   mongo2:
     container_name: mongo2
@@ -31,9 +24,9 @@ services:
       mongo-network:
         ipv4_address: 172.16.238.11
     ports:
-      - 27059:27017
+      - 127.0.0.2:27017:27017
     restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+    command: ["--bind_ip_all", "--replSet", "dbrs"]
 
   mongo3:
     container_name: mongo3
@@ -42,9 +35,9 @@ services:
       mongo-network:
         ipv4_address: 172.16.238.12
     ports:
-      - 27060:27017
+      - 127.0.0.3:27017:27017
     restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+    command: ["--bind_ip_all", "--replSet", "dbrs"]
 
   mongo4:
     container_name: mongo4
@@ -53,13 +46,13 @@ services:
       mongo-network:
         ipv4_address: 172.16.238.13
     ports:
-      - 27061:27017
+      - 127.0.0.1:27061:27017
     restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "dbrs" ]
+    command: ["--bind_ip_all", "--replSet", "dbrs"]
 
 networks:
   mongo-network:
     ipam:
-      driver: default    # bridge
+      driver: default
       config:
         - subnet: 172.16.238.0/24

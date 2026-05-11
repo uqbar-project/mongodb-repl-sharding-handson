@@ -1,6 +1,22 @@
 
 # Replicación
 
+## Antes de comenzar
+
+Actualizar en `/etc/hosts` o `C:\Windows\System32\drivers\etc\hosts` la siguiente información
+
+```bash
+127.0.0.1       localhost
+255.255.255.255 broadcasthost
+::1             localhost
+# ---- agregar lo que sigue abajo
+127.0.0.1 mongo1
+127.0.0.2 mongo2
+127.0.0.3 mongo3
+127.0.0.1 mongo4
+# ---- fin agregar
+```
+
 ## Taller para generar réplicas en MongoDB
 
 Si querés ver cómo se implementa en forma manual podés chequear [esta otra página](./replicacionTallerManual.md).

@@ -2,33 +2,33 @@
 
 DELAY=25
 
-mongosh <<EOF
+mongosh --host localhost --port 27017 <<EOF
 var config = {
     "_id": "dbrs",
     "version": 1,
     "members": [
         {
             "_id": 1,
-            "host": "172.16.238.10:27017",
+            "host": "mongo1:27017",
             "priority": 2
         },
         {
             "_id": 2,
-            "host": "172.16.238.11:27017",
+            "host": "mongo2:27017",
             "priority": 1
         },
         {
             "_id": 3,
-            "host": "172.16.238.12:27017",
+            "host": "mongo3:27017",
             "priority": 1
         }
     ]
 };
-rs.initiate(config, { force: true });
+rs.initiate(config);
 EOF
 
 echo "****** Waiting for ${DELAY} seconds for replicaset configuration to be applied ******"
 
 sleep $DELAY
 
-mongosh mongodb://172.16.238.10:27017/admin < /scripts/init.js
+mongosh --host localhost --port 27017 admin < /scripts/init.js
