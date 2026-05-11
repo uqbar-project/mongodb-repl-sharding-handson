@@ -1,0 +1,18 @@
+{
+  "name": "mongodb-sharding-scripts",
+  "version": "1.0.0",
+  "scripts": {
+    "clientes-dry": "tsx scripts/generar-clientes.ts",
+    "clientes": "tsx scripts/generar-clientes.ts --insertar"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^9.0.0",
+    "dotenv": "^16.6.1",
+    "mongodb": "^6.8.0"
+  }
+}
